@@ -15,9 +15,11 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { useShippers, useConsignees, useCustomers, getEntityAddress } from '@/hooks/useEntities';
-import { CARGO_TYPES, WEIGHT_UNITS, VOLUME_UNITS } from '@/types/entities';
-import { Package, Building2, Truck, User } from 'lucide-react';
+import { CARGO_TYPES, WEIGHT_UNITS } from '@/types/entities';
+import { Package, Building2, Truck, User, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 
 interface ConsignmentDetailsSectionProps {
   form: UseFormReturn<any>;
@@ -32,12 +34,15 @@ export function ConsignmentDetailsSection({ form, rfqType }: ConsignmentDetailsS
   const selectedShipperId = useWatch({ control: form.control, name: 'shipper_id' });
   const selectedConsigneeId = useWatch({ control: form.control, name: 'consignee_id' });
   const selectedCustomerId = useWatch({ control: form.control, name: 'customer_id' });
+  const shipmentDirection = useWatch({ control: form.control, name: 'shipment_direction' });
 
   const selectedShipper = shippers.find(s => s.id === selectedShipperId);
   const selectedConsignee = consignees.find(c => c.id === selectedConsigneeId);
   const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
 
   const isSpot = rfqType === 'spot';
+  const isImport = shipmentDirection === 'import';
+  const isExport = shipmentDirection === 'export';
 
   return (
     <div className="space-y-6">
@@ -57,37 +62,87 @@ export function ConsignmentDetailsSection({ form, rfqType }: ConsignmentDetailsS
 
       <Separator />
 
-      {/* Order Numbers */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Shipment Direction - Import/Export */}
+      <div>
+        <Label className="text-sm font-medium">Shipment Direction {isSpot && <span className="text-destructive">*</span>}</Label>
         <FormField
           control={form.control}
-          name="po_number"
-          rules={isSpot ? { required: 'PO Number is required for spot RFQs' } : {}}
+          name="shipment_direction"
+          rules={isSpot ? { required: 'Please select shipment direction' } : {}}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PO Number {isSpot && <span className="text-destructive">*</span>}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., PO-2025-001234" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="so_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SO Number</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., SO-2025-005678" {...field} />
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="mt-2 grid gap-3 sm:grid-cols-2"
+                >
+                  <div className="flex items-center space-x-3 rounded-lg border border-border/50 p-4 cursor-pointer hover:border-primary/50 transition-colors">
+                    <RadioGroupItem value="import" id="import" />
+                    <div className="flex items-center gap-2">
+                      <ArrowDownToLine className="h-5 w-5 text-primary" />
+                      <div>
+                        <Label htmlFor="import" className="cursor-pointer font-medium">Import</Label>
+                        <p className="text-xs text-muted-foreground">Receiving goods (PO required)</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 rounded-lg border border-border/50 p-4 cursor-pointer hover:border-primary/50 transition-colors">
+                    <RadioGroupItem value="export" id="export" />
+                    <div className="flex items-center gap-2">
+                      <ArrowUpFromLine className="h-5 w-5 text-accent" />
+                      <div>
+                        <Label htmlFor="export" className="cursor-pointer font-medium">Export</Label>
+                        <p className="text-xs text-muted-foreground">Sending goods (SO required)</p>
+                      </div>
+                    </div>
+                  </div>
+                </RadioGroup>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
+
+      {/* Order Number - Conditional based on direction */}
+      {(isImport || isExport) && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {isImport && (
+            <FormField
+              control={form.control}
+              name="po_number"
+              rules={isSpot ? { required: 'PO Number is required for import shipments' } : {}}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Order (PO) {isSpot && <span className="text-destructive">*</span>}</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., PO-2025-001234" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isExport && (
+            <FormField
+              control={form.control}
+              name="so_number"
+              rules={isSpot ? { required: 'SO Number is required for export shipments' } : {}}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sales Order (SO) {isSpot && <span className="text-destructive">*</span>}</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., SO-2025-005678" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+      )}
 
       {/* Customer, Shipper, Consignee */}
       <div className="grid gap-4 sm:grid-cols-3">
