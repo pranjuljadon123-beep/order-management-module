@@ -361,6 +361,126 @@ export type Database = {
         }
         Relationships: []
       }
+      consignees: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          code: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          port_code: string | null
+          postal_code: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          port_code?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          port_code?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          billing_address: string | null
+          city: string | null
+          code: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          postal_code: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          billing_address?: string | null
+          city?: string | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          billing_address?: string | null
+          city?: string | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lane_rankings: {
         Row: {
           bid_id: string | null
@@ -739,65 +859,130 @@ export type Database = {
       }
       rfq_lanes: {
         Row: {
+          consignee_id: string | null
           created_at: string
+          destination_address: string | null
           destination_city: string
           destination_country: string
+          destination_port: string | null
           destination_port_code: string | null
+          dimensions_height: number | null
+          dimensions_length: number | null
+          dimensions_unit: string | null
+          dimensions_width: number | null
           equipment_type: string | null
           estimated_volume: string | null
           frequency: string | null
           id: string
           is_awarded: boolean | null
           lane_number: number
+          origin_address: string | null
           origin_city: string
           origin_country: string
+          origin_port: string | null
           origin_port_code: string | null
+          package_type: string | null
+          quantity: number | null
+          quantity_unit: string | null
           rfq_id: string
+          shipper_id: string | null
           special_requirements: string | null
+          volume_cbm: number | null
           volume_unit: string | null
+          volume_value: number | null
+          weight_unit: string | null
+          weight_value: number | null
         }
         Insert: {
+          consignee_id?: string | null
           created_at?: string
+          destination_address?: string | null
           destination_city: string
           destination_country: string
+          destination_port?: string | null
           destination_port_code?: string | null
+          dimensions_height?: number | null
+          dimensions_length?: number | null
+          dimensions_unit?: string | null
+          dimensions_width?: number | null
           equipment_type?: string | null
           estimated_volume?: string | null
           frequency?: string | null
           id?: string
           is_awarded?: boolean | null
           lane_number: number
+          origin_address?: string | null
           origin_city: string
           origin_country: string
+          origin_port?: string | null
           origin_port_code?: string | null
+          package_type?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
           rfq_id: string
+          shipper_id?: string | null
           special_requirements?: string | null
+          volume_cbm?: number | null
           volume_unit?: string | null
+          volume_value?: number | null
+          weight_unit?: string | null
+          weight_value?: number | null
         }
         Update: {
+          consignee_id?: string | null
           created_at?: string
+          destination_address?: string | null
           destination_city?: string
           destination_country?: string
+          destination_port?: string | null
           destination_port_code?: string | null
+          dimensions_height?: number | null
+          dimensions_length?: number | null
+          dimensions_unit?: string | null
+          dimensions_width?: number | null
           equipment_type?: string | null
           estimated_volume?: string | null
           frequency?: string | null
           id?: string
           is_awarded?: boolean | null
           lane_number?: number
+          origin_address?: string | null
           origin_city?: string
           origin_country?: string
+          origin_port?: string | null
           origin_port_code?: string | null
+          package_type?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
           rfq_id?: string
+          shipper_id?: string | null
           special_requirements?: string | null
+          volume_cbm?: number | null
           volume_unit?: string | null
+          volume_value?: number | null
+          weight_unit?: string | null
+          weight_value?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "rfq_lanes_consignee_id_fkey"
+            columns: ["consignee_id"]
+            isOneToOne: false
+            referencedRelation: "consignees"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rfq_lanes_rfq_id_fkey"
             columns: ["rfq_id"]
             isOneToOne: false
             referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfq_lanes_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
             referencedColumns: ["id"]
           },
         ]
@@ -806,17 +991,25 @@ export type Database = {
         Row: {
           auction_status: string | null
           bid_deadline: string | null
+          cargo_description: string | null
+          cargo_type: string | null
+          consignee_id: string | null
           contract_duration_months: number | null
           created_at: string
           created_by: string | null
+          customer_id: string | null
           estimated_annual_volume: string | null
           id: string
           incoterms: string | null
           metadata: Json | null
           mode: string
           notes: string | null
+          pickup_date: string | null
+          po_number: string | null
           rfq_number: string
           rfq_type: string | null
+          shipper_id: string | null
+          so_number: string | null
           status: string
           title: string
           updated_at: string
@@ -826,17 +1019,25 @@ export type Database = {
         Insert: {
           auction_status?: string | null
           bid_deadline?: string | null
+          cargo_description?: string | null
+          cargo_type?: string | null
+          consignee_id?: string | null
           contract_duration_months?: number | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           estimated_annual_volume?: string | null
           id?: string
           incoterms?: string | null
           metadata?: Json | null
           mode: string
           notes?: string | null
+          pickup_date?: string | null
+          po_number?: string | null
           rfq_number: string
           rfq_type?: string | null
+          shipper_id?: string | null
+          so_number?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -846,22 +1047,112 @@ export type Database = {
         Update: {
           auction_status?: string | null
           bid_deadline?: string | null
+          cargo_description?: string | null
+          cargo_type?: string | null
+          consignee_id?: string | null
           contract_duration_months?: number | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           estimated_annual_volume?: string | null
           id?: string
           incoterms?: string | null
           metadata?: Json | null
           mode?: string
           notes?: string | null
+          pickup_date?: string | null
+          po_number?: string | null
           rfq_number?: string
           rfq_type?: string | null
+          shipper_id?: string | null
+          so_number?: string | null
           status?: string
           title?: string
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rfqs_consignee_id_fkey"
+            columns: ["consignee_id"]
+            isOneToOne: false
+            referencedRelation: "consignees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfqs_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rfqs_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shippers: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          code: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          country: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          port_code: string | null
+          postal_code: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          port_code?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          code?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          port_code?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

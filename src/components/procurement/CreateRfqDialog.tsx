@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
 import { useCreateRfq, useCarriers } from '@/hooks/useProcurement';
+import { useShippers, useConsignees, getEntityAddress, getEntityPort } from '@/hooks/useEntities';
 import {
   Dialog,
   DialogContent,
@@ -33,9 +34,11 @@ import { Label } from '@/components/ui/label';
 import { 
   Plus, Trash2, Loader2, Ship, Plane, Truck, Train, 
   FileText, ScrollText, ChevronLeft, ChevronRight, 
-  Gavel, Settings2 
+  Gavel, Settings2, MapPin
 } from 'lucide-react';
 import type { CreateRfqInput, TransportMode } from '@/types/procurement';
+import { ConsignmentDetailsSection } from './ConsignmentDetailsSection';
+import { LaneDimensionsSection } from './LaneDimensionsSection';
 
 interface CreateRfqDialogProps {
   open: boolean;
@@ -57,6 +60,48 @@ const transportModes: { value: TransportMode; label: string; icon: typeof Ship }
 
 const incoterms = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DAP', 'DPU', 'DDP'];
 
+interface ExtendedLaneInput {
+  origin_city: string;
+  origin_country: string;
+  origin_port?: string;
+  origin_address?: string;
+  destination_city: string;
+  destination_country: string;
+  destination_port?: string;
+  destination_address?: string;
+  equipment_type?: string;
+  estimated_volume?: string;
+  volume_unit?: string;
+  frequency?: string;
+  shipper_id?: string;
+  consignee_id?: string;
+  weight_value?: number;
+  weight_unit?: string;
+  volume_cbm?: number;
+  quantity?: number;
+  package_type?: string;
+  dimensions_length?: number;
+  dimensions_width?: number;
+  dimensions_height?: number;
+  dimensions_unit?: string;
+}
+
+interface ExtendedRfqInput extends Omit<CreateRfqInput, 'lanes'> {
+  lanes: ExtendedLaneInput[];
+  po_number?: string;
+  so_number?: string;
+  customer_id?: string;
+  shipper_id?: string;
+  consignee_id?: string;
+  cargo_type?: string;
+  cargo_description?: string;
+  pickup_date?: string;
+  weight_value?: number;
+  weight_unit?: string;
+  volume_cbm?: number;
+  quantity?: number;
+}
+
 export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [rfqType, setRfqType] = useState<RfqType | null>(null);
@@ -70,9 +115,12 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
     autoExtendMinutes: 5,
   });
   
+  const { data: shippers = [] } = useShippers();
+  const { data: consignees = [] } = useConsignees();
+  
   const createRfq = useCreateRfq();
   
-  const form = useForm<CreateRfqInput>({
+  const form = useForm<ExtendedRfqInput>({
     defaultValues: {
       title: '',
       mode: 'ocean_fcl',
@@ -81,15 +129,38 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       estimated_annual_volume: '',
       bid_deadline: '',
       notes: '',
+      po_number: '',
+      so_number: '',
+      customer_id: '',
+      shipper_id: '',
+      consignee_id: '',
+      cargo_type: '',
+      cargo_description: '',
+      pickup_date: '',
+      weight_value: undefined,
+      weight_unit: 'KG',
+      volume_cbm: undefined,
+      quantity: undefined,
       lanes: [
         {
           origin_city: '',
           origin_country: '',
+          origin_port: '',
+          origin_address: '',
           destination_city: '',
           destination_country: '',
+          destination_port: '',
+          destination_address: '',
           equipment_type: '',
           estimated_volume: '',
           volume_unit: 'TEU',
+          shipper_id: '',
+          consignee_id: '',
+          weight_value: undefined,
+          weight_unit: 'KG',
+          volume_cbm: undefined,
+          quantity: undefined,
+          dimensions_unit: 'CM',
         },
       ],
     },
@@ -100,6 +171,10 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
     name: 'lanes',
   });
 
+  // Watch for shipper/consignee changes at RFQ level to auto-populate lane addresses
+  const rfqShipperId = useWatch({ control: form.control, name: 'shipper_id' });
+  const rfqConsigneeId = useWatch({ control: form.control, name: 'consignee_id' });
+
   const handleClose = () => {
     onOpenChange(false);
     setTimeout(() => {
@@ -109,23 +184,59 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
     }, 200);
   };
 
-  const onSubmit = async (data: CreateRfqInput) => {
-    await createRfq.mutateAsync({
-      ...data,
+  const onSubmit = async (data: ExtendedRfqInput) => {
+    // Map extended input to API format
+    const submitData: any = {
+      title: data.title,
+      mode: data.mode,
+      incoterms: data.incoterms,
+      contract_duration_months: data.contract_duration_months,
+      estimated_annual_volume: data.estimated_annual_volume,
+      bid_deadline: data.bid_deadline,
+      notes: data.notes,
       rfq_type: rfqType || 'spot',
-    });
+      po_number: data.po_number,
+      so_number: data.so_number,
+      customer_id: data.customer_id || null,
+      shipper_id: data.shipper_id || null,
+      consignee_id: data.consignee_id || null,
+      cargo_type: data.cargo_type,
+      cargo_description: data.cargo_description,
+      pickup_date: data.pickup_date || null,
+      lanes: data.lanes.map(lane => ({
+        ...lane,
+        shipper_id: lane.shipper_id || data.shipper_id || null,
+        consignee_id: lane.consignee_id || data.consignee_id || null,
+      })),
+    };
+    
+    await createRfq.mutateAsync(submitData);
     handleClose();
   };
 
   const addLane = () => {
+    const selectedShipper = shippers.find(s => s.id === rfqShipperId);
+    const selectedConsignee = consignees.find(c => c.id === rfqConsigneeId);
+    
     append({
-      origin_city: '',
-      origin_country: '',
-      destination_city: '',
-      destination_country: '',
+      origin_city: selectedShipper?.city || '',
+      origin_country: selectedShipper?.country || '',
+      origin_port: getEntityPort(selectedShipper || null),
+      origin_address: getEntityAddress(selectedShipper || null),
+      destination_city: selectedConsignee?.city || '',
+      destination_country: selectedConsignee?.country || '',
+      destination_port: getEntityPort(selectedConsignee || null),
+      destination_address: getEntityAddress(selectedConsignee || null),
       equipment_type: '',
       estimated_volume: '',
       volume_unit: 'TEU',
+      shipper_id: rfqShipperId,
+      consignee_id: rfqConsigneeId,
+      weight_value: undefined,
+      weight_unit: 'KG',
+      volume_cbm: undefined,
+      quantity: undefined,
+      dimensions_unit: 'CM',
     });
   };
 
@@ -133,6 +244,8 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
     setRfqType(type);
     setStep(2);
   };
+
+  const isSpot = rfqType === 'spot';
 
   const renderStep1 = () => (
     <div className="space-y-6 py-4">
@@ -308,6 +421,11 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
       <Separator />
 
+      {/* Consignment Details Section */}
+      <ConsignmentDetailsSection form={form} rfqType={rfqType} />
+
+      <Separator />
+
       {/* Lanes */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -324,167 +442,16 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
         </div>
 
         {fields.map((field, index) => (
-          <div
+          <LaneFormSection 
             key={field.id}
-            className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                Lane {index + 1}
-              </span>
-              {fields.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive"
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.origin_city`}
-                rules={{ required: 'Required' }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Origin City</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Shanghai" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.origin_country`}
-                rules={{ required: 'Required' }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Origin Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="China" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.destination_city`}
-                rules={{ required: 'Required' }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Destination City</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Los Angeles" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.destination_country`}
-                rules={{ required: 'Required' }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Destination Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="USA" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.equipment_type`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Equipment Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder="40' HC" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.estimated_volume`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Est. Volume</FormLabel>
-                    <FormControl>
-                      <Input placeholder="50" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.volume_unit`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-popover">
-                        <SelectItem value="TEU">TEU</SelectItem>
-                        <SelectItem value="FEU">FEU</SelectItem>
-                        <SelectItem value="CBM">CBM</SelectItem>
-                        <SelectItem value="kg">kg</SelectItem>
-                        <SelectItem value="tons">tons</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`lanes.${index}.frequency`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Frequency</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-popover">
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="ad-hoc">Ad-hoc</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+            form={form}
+            index={index}
+            isSpot={isSpot}
+            fieldsLength={fields.length}
+            onRemove={() => remove(index)}
+            shippers={shippers}
+            consignees={consignees}
+          />
         ))}
       </div>
     </div>
@@ -677,6 +644,18 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
             <span className="text-muted-foreground">Lanes:</span>
             <span className="font-medium">{fields.length}</span>
           </div>
+          {form.watch('po_number') && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">PO Number:</span>
+              <span className="font-medium">{form.watch('po_number')}</span>
+            </div>
+          )}
+          {form.watch('pickup_date') && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Pickup Date:</span>
+              <span className="font-medium">{form.watch('pickup_date')}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Auction:</span>
             <span className="font-medium">
@@ -753,5 +732,336 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Lane Form Section Component
+interface LaneFormSectionProps {
+  form: UseFormReturn<ExtendedRfqInput>;
+  index: number;
+  isSpot: boolean;
+  fieldsLength: number;
+  onRemove: () => void;
+  shippers: any[];
+  consignees: any[];
+}
+
+function LaneFormSection({ form, index, isSpot, fieldsLength, onRemove, shippers, consignees }: LaneFormSectionProps) {
+  const laneShipperId = useWatch({ control: form.control, name: `lanes.${index}.shipper_id` });
+  const laneConsigneeId = useWatch({ control: form.control, name: `lanes.${index}.consignee_id` });
+  
+  const selectedShipper = shippers.find(s => s.id === laneShipperId);
+  const selectedConsignee = consignees.find(c => c.id === laneConsigneeId);
+
+  // Auto-populate addresses when shipper/consignee changes
+  const updateAddresses = (type: 'shipper' | 'consignee', id: string) => {
+    if (type === 'shipper') {
+      const shipper = shippers.find(s => s.id === id);
+      if (shipper) {
+        form.setValue(`lanes.${index}.origin_city`, shipper.city || '');
+        form.setValue(`lanes.${index}.origin_country`, shipper.country || '');
+        form.setValue(`lanes.${index}.origin_port`, shipper.port_code || '');
+        form.setValue(`lanes.${index}.origin_address`, getEntityAddress(shipper));
+      }
+    } else {
+      const consignee = consignees.find(c => c.id === id);
+      if (consignee) {
+        form.setValue(`lanes.${index}.destination_city`, consignee.city || '');
+        form.setValue(`lanes.${index}.destination_country`, consignee.country || '');
+        form.setValue(`lanes.${index}.destination_port`, consignee.port_code || '');
+        form.setValue(`lanes.${index}.destination_address`, getEntityAddress(consignee));
+      }
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border/50 bg-muted/30 p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-muted-foreground">
+          Lane {index + 1}
+        </span>
+        {fieldsLength > 1 && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive"
+            onClick={onRemove}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* Lane-level Shipper/Consignee (optional override) */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.shipper_id`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs text-muted-foreground">Lane Shipper (override)</FormLabel>
+              <Select 
+                onValueChange={(v) => {
+                  field.onChange(v);
+                  updateAddresses('shipper', v);
+                }} 
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Use RFQ shipper" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-popover">
+                  {shippers.map((shipper) => (
+                    <SelectItem key={shipper.id} value={shipper.id}>
+                      {shipper.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.consignee_id`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs text-muted-foreground">Lane Consignee (override)</FormLabel>
+              <Select 
+                onValueChange={(v) => {
+                  field.onChange(v);
+                  updateAddresses('consignee', v);
+                }} 
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Use RFQ consignee" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-popover">
+                  {consignees.map((consignee) => (
+                    <SelectItem key={consignee.id} value={consignee.id}>
+                      {consignee.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.origin_city`}
+          rules={{ required: 'Required' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Origin City</FormLabel>
+              <FormControl>
+                <Input placeholder="Shanghai" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.origin_country`}
+          rules={{ required: 'Required' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Origin Country</FormLabel>
+              <FormControl>
+                <Input placeholder="China" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.origin_port`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                Origin Port
+              </FormLabel>
+              <FormControl>
+                <Input placeholder="CNSHA" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.origin_address`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Origin Address</FormLabel>
+              <FormControl>
+                <Input placeholder="Full address" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.destination_city`}
+          rules={{ required: 'Required' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Destination City</FormLabel>
+              <FormControl>
+                <Input placeholder="Los Angeles" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.destination_country`}
+          rules={{ required: 'Required' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Destination Country</FormLabel>
+              <FormControl>
+                <Input placeholder="USA" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.destination_port`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                Destination Port
+              </FormLabel>
+              <FormControl>
+                <Input placeholder="USLAX" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.destination_address`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Destination Address</FormLabel>
+              <FormControl>
+                <Input placeholder="Full address" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.equipment_type`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Equipment Type</FormLabel>
+              <FormControl>
+                <Input placeholder="40' HC" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.estimated_volume`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Est. Volume</FormLabel>
+              <FormControl>
+                <Input placeholder="50" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.volume_unit`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Unit</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="TEU">TEU</SelectItem>
+                  <SelectItem value="FEU">FEU</SelectItem>
+                  <SelectItem value="CBM">CBM</SelectItem>
+                  <SelectItem value="kg">kg</SelectItem>
+                  <SelectItem value="tons">tons</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name={`lanes.${index}.frequency`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Frequency</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="ad-hoc">Ad-hoc</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Cargo Dimensions for each lane */}
+      <LaneDimensionsSection form={form} laneIndex={index} isSpot={isSpot} />
+    </div>
   );
 }
