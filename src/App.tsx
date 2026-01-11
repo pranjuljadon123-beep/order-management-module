@@ -10,6 +10,9 @@ import Tracking from "./pages/Tracking";
 import Analytics from "./pages/Analytics";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import VendorPortal from "./pages/VendorPortal";
+import VendorRfqDetail from "./pages/VendorRfqDetail";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +23,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Auth */}
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Vendor Portal */}
+          <Route path="/vendor" element={<VendorPortal />} />
+          <Route path="/vendor/rfq/:rfqId" element={<VendorRfqDetail />} />
+          
+          {/* Buyer Portal */}
           <Route path="/" element={<Index />} />
           <Route path="/procurement" element={<Procurement />} />
           <Route path="/shipments" element={<Shipments />} />
