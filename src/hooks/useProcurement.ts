@@ -74,7 +74,7 @@ export function useCreateRfq() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (input: CreateRfqInput) => {
+    mutationFn: async (input: CreateRfqInput & { invited_vendors?: string[] }) => {
       // Generate RFQ number
       const { data: rfqNumber } = await supabase.rpc('generate_rfq_number');
       
@@ -112,6 +112,21 @@ export function useCreateRfq() {
           .insert(lanes);
         
         if (lanesError) throw lanesError;
+      }
+      
+      // Create vendor invitations for selected carriers
+      if (input.invited_vendors && input.invited_vendors.length > 0) {
+        const invitations = input.invited_vendors.map(carrierId => ({
+          rfq_id: rfq.id,
+          carrier_id: carrierId,
+          status: 'pending',
+        }));
+        
+        const { error: invitationsError } = await supabase
+          .from('vendor_invitations')
+          .insert(invitations);
+        
+        if (invitationsError) throw invitationsError;
       }
       
       return rfq;

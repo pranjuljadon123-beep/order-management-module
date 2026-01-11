@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form';
-import { useCreateRfq, useCarriers } from '@/hooks/useProcurement';
+import { useCreateRfq } from '@/hooks/useProcurement';
 import { useShippers, useConsignees, getEntityAddress, getEntityPort } from '@/hooks/useEntities';
+import { VendorSelectionSection } from './VendorSelectionSection';
 import {
   Dialog,
   DialogContent,
@@ -103,8 +104,9 @@ interface ExtendedRfqInput extends Omit<CreateRfqInput, 'lanes'> {
 }
 
 export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [rfqType, setRfqType] = useState<RfqType | null>(null);
+  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
   const [auctionConfig, setAuctionConfig] = useState({
     structure: 'single_round' as AuctionStructure,
     rankingLogic: 'price_only' as RankingLogic,
@@ -180,11 +182,17 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
     setTimeout(() => {
       setStep(1);
       setRfqType(null);
+      setSelectedVendors([]);
       form.reset();
     }, 200);
   };
 
   const onSubmit = async (data: ExtendedRfqInput) => {
+    // Ensure at least one vendor is selected
+    if (selectedVendors.length === 0) {
+      return;
+    }
+    
     // Map extended input to API format
     const submitData: any = {
       title: data.title,
@@ -208,6 +216,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
         shipper_id: lane.shipper_id || data.shipper_id || null,
         consignee_id: lane.consignee_id || data.consignee_id || null,
       })),
+      invited_vendors: selectedVendors,
     };
     
     await createRfq.mutateAsync(submitData);
@@ -463,6 +472,23 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
         <span className="rounded bg-accent/10 px-2 py-0.5 font-medium text-accent">
           {rfqType === 'spot' ? 'Spot' : 'Contract'} RFQ
         </span>
+        <span>→ Select Vendors</span>
+      </div>
+
+      <VendorSelectionSection
+        selectedVendors={selectedVendors}
+        onVendorsChange={setSelectedVendors}
+        mode={form.watch('mode')}
+      />
+    </div>
+  );
+
+  const renderStep4 = () => (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="rounded bg-accent/10 px-2 py-0.5 font-medium text-accent">
+          {rfqType === 'spot' ? 'Spot' : 'Contract'} RFQ
+        </span>
         <span>→ Auction Configuration</span>
       </div>
 
@@ -603,7 +629,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
     </div>
   );
 
-  const renderStep4 = () => (
+  const renderStep5 = () => (
     <div className="space-y-6">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span className="rounded bg-accent/10 px-2 py-0.5 font-medium text-accent">
@@ -657,6 +683,10 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
             </div>
           )}
           <div className="flex justify-between">
+            <span className="text-muted-foreground">Invited Vendors:</span>
+            <span className="font-medium">{selectedVendors.length}</span>
+          </div>
+          <div className="flex justify-between">
             <span className="text-muted-foreground">Auction:</span>
             <span className="font-medium">
               {auctionConfig.structure === 'single_round' ? 'Single Round' : 'Multi-Round'}
@@ -680,13 +710,14 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            {step === 1 ? 'Create New Auction RFQ' : `Step ${step} of 4`}
+            {step === 1 ? 'Create New Auction RFQ' : `Step ${step} of 5`}
           </DialogTitle>
           <DialogDescription>
             {step === 1 && 'Choose between spot shipment or contract procurement'}
             {step === 2 && 'Enter RFQ details and define your freight lanes'}
-            {step === 3 && 'Configure how the reverse auction will operate'}
-            {step === 4 && 'Review and create your auction RFQ'}
+            {step === 3 && 'Select vendors who can participate in the auction'}
+            {step === 4 && 'Configure how the reverse auction will operate'}
+            {step === 5 && 'Review and create your auction RFQ'}
           </DialogDescription>
         </DialogHeader>
 
@@ -696,22 +727,24 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
             {step === 2 && renderStep2()}
             {step === 3 && renderStep3()}
             {step === 4 && renderStep4()}
+            {step === 5 && renderStep5()}
 
             {step > 1 && (
               <div className="flex justify-between pt-4 border-t border-border/50">
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  onClick={() => setStep((s) => (s > 1 ? (s - 1) as 1 | 2 | 3 | 4 : s))}
+                  onClick={() => setStep((s) => (s > 1 ? (s - 1) as 1 | 2 | 3 | 4 | 5 : s))}
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
                 
-                {step < 4 ? (
+                {step < 5 ? (
                   <Button 
                     type="button"
-                    onClick={() => setStep((s) => (s < 4 ? (s + 1) as 1 | 2 | 3 | 4 : s))}
+                    onClick={() => setStep((s) => (s < 5 ? (s + 1) as 1 | 2 | 3 | 4 | 5 : s))}
+                    disabled={step === 3 && selectedVendors.length === 0}
                   >
                     Next
                     <ChevronRight className="ml-2 h-4 w-4" />
@@ -720,7 +753,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
                   <Button 
                     type="submit" 
                     className="bg-accent hover:bg-accent/90"
-                    disabled={createRfq.isPending}
+                    disabled={createRfq.isPending || selectedVendors.length === 0}
                   >
                     {createRfq.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Auction RFQ
