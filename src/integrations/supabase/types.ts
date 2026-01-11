@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      auction_configs: {
+        Row: {
+          auction_end: string | null
+          auction_start: string | null
+          auction_type: string
+          auto_award_enabled: boolean | null
+          auto_extend_enabled: boolean | null
+          auto_extend_minutes: number | null
+          created_at: string
+          current_round: number | null
+          id: string
+          max_rounds: number | null
+          min_bid_decrement: number | null
+          min_bid_decrement_type: string | null
+          price_weight: number | null
+          ranking_logic: string
+          rfq_id: string
+          structure: string
+          transit_time_weight: number | null
+          updated_at: string
+        }
+        Insert: {
+          auction_end?: string | null
+          auction_start?: string | null
+          auction_type?: string
+          auto_award_enabled?: boolean | null
+          auto_extend_enabled?: boolean | null
+          auto_extend_minutes?: number | null
+          created_at?: string
+          current_round?: number | null
+          id?: string
+          max_rounds?: number | null
+          min_bid_decrement?: number | null
+          min_bid_decrement_type?: string | null
+          price_weight?: number | null
+          ranking_logic?: string
+          rfq_id: string
+          structure?: string
+          transit_time_weight?: number | null
+          updated_at?: string
+        }
+        Update: {
+          auction_end?: string | null
+          auction_start?: string | null
+          auction_type?: string
+          auto_award_enabled?: boolean | null
+          auto_extend_enabled?: boolean | null
+          auto_extend_minutes?: number | null
+          created_at?: string
+          current_round?: number | null
+          id?: string
+          max_rounds?: number | null
+          min_bid_decrement?: number | null
+          min_bid_decrement_type?: string | null
+          price_weight?: number | null
+          ranking_logic?: string
+          rfq_id?: string
+          structure?: string
+          transit_time_weight?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_configs_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: true
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       awards: {
         Row: {
           allocation_percentage: number | null
@@ -154,6 +225,100 @@ export type Database = {
         }
         Relationships: []
       }
+      bids: {
+        Row: {
+          base_rate: number
+          bid_number: string
+          carrier_id: string
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean | null
+          lane_id: string
+          notes: string | null
+          rate_unit: string | null
+          rfq_id: string
+          round_number: number
+          status: string
+          submitted_at: string
+          surcharges: Json | null
+          total_landed_cost: number
+          transit_time_days: number | null
+          updated_at: string
+          validity_end: string | null
+          validity_start: string | null
+          version: number
+        }
+        Insert: {
+          base_rate: number
+          bid_number: string
+          carrier_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean | null
+          lane_id: string
+          notes?: string | null
+          rate_unit?: string | null
+          rfq_id: string
+          round_number?: number
+          status?: string
+          submitted_at?: string
+          surcharges?: Json | null
+          total_landed_cost: number
+          transit_time_days?: number | null
+          updated_at?: string
+          validity_end?: string | null
+          validity_start?: string | null
+          version?: number
+        }
+        Update: {
+          base_rate?: number
+          bid_number?: string
+          carrier_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean | null
+          lane_id?: string
+          notes?: string | null
+          rate_unit?: string | null
+          rfq_id?: string
+          round_number?: number
+          status?: string
+          submitted_at?: string
+          surcharges?: Json | null
+          total_landed_cost?: number
+          transit_time_days?: number | null
+          updated_at?: string
+          validity_end?: string | null
+          validity_start?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bids_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_lane_id_fkey"
+            columns: ["lane_id"]
+            isOneToOne: false
+            referencedRelation: "rfq_lanes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bids_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carriers: {
         Row: {
           code: string
@@ -195,6 +360,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      lane_rankings: {
+        Row: {
+          bid_id: string | null
+          carrier_id: string
+          computed_at: string
+          id: string
+          lane_id: string
+          rank: number
+          rfq_id: string
+          round_number: number | null
+          score: number | null
+          total_vendors: number
+        }
+        Insert: {
+          bid_id?: string | null
+          carrier_id: string
+          computed_at?: string
+          id?: string
+          lane_id: string
+          rank: number
+          rfq_id: string
+          round_number?: number | null
+          score?: number | null
+          total_vendors: number
+        }
+        Update: {
+          bid_id?: string | null
+          carrier_id?: string
+          computed_at?: string
+          id?: string
+          lane_id?: string
+          rank?: number
+          rfq_id?: string
+          round_number?: number | null
+          score?: number | null
+          total_vendors?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lane_rankings_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "bids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lane_rankings_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lane_rankings_lane_id_fkey"
+            columns: ["lane_id"]
+            isOneToOne: false
+            referencedRelation: "rfq_lanes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lane_rankings_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       procurement_events: {
         Row: {
@@ -354,6 +587,48 @@ export type Database = {
           },
           {
             foreignKeyName: "quotes_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rank_snapshots: {
+        Row: {
+          id: string
+          lane_id: string
+          rankings: Json
+          rfq_id: string
+          round_number: number
+          snapshot_at: string
+        }
+        Insert: {
+          id?: string
+          lane_id: string
+          rankings: Json
+          rfq_id: string
+          round_number?: number
+          snapshot_at?: string
+        }
+        Update: {
+          id?: string
+          lane_id?: string
+          rankings?: Json
+          rfq_id?: string
+          round_number?: number
+          snapshot_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rank_snapshots_lane_id_fkey"
+            columns: ["lane_id"]
+            isOneToOne: false
+            referencedRelation: "rfq_lanes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rank_snapshots_rfq_id_fkey"
             columns: ["rfq_id"]
             isOneToOne: false
             referencedRelation: "rfqs"
@@ -529,6 +804,7 @@ export type Database = {
       }
       rfqs: {
         Row: {
+          auction_status: string | null
           bid_deadline: string | null
           contract_duration_months: number | null
           created_at: string
@@ -540,6 +816,7 @@ export type Database = {
           mode: string
           notes: string | null
           rfq_number: string
+          rfq_type: string | null
           status: string
           title: string
           updated_at: string
@@ -547,6 +824,7 @@ export type Database = {
           valid_to: string | null
         }
         Insert: {
+          auction_status?: string | null
           bid_deadline?: string | null
           contract_duration_months?: number | null
           created_at?: string
@@ -558,6 +836,7 @@ export type Database = {
           mode: string
           notes?: string | null
           rfq_number: string
+          rfq_type?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -565,6 +844,7 @@ export type Database = {
           valid_to?: string | null
         }
         Update: {
+          auction_status?: string | null
           bid_deadline?: string | null
           contract_duration_months?: number | null
           created_at?: string
@@ -576,6 +856,7 @@ export type Database = {
           mode?: string
           notes?: string | null
           rfq_number?: string
+          rfq_type?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -584,11 +865,60 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_invitations: {
+        Row: {
+          accepted_at: string | null
+          carrier_id: string
+          declined_at: string | null
+          id: string
+          invited_at: string
+          rfq_id: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          carrier_id: string
+          declined_at?: string | null
+          id?: string
+          invited_at?: string
+          rfq_id: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          carrier_id?: string
+          declined_at?: string | null
+          id?: string
+          invited_at?: string
+          rfq_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_invitations_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_invitations_rfq_id_fkey"
+            columns: ["rfq_id"]
+            isOneToOne: false
+            referencedRelation: "rfqs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      compute_lane_rankings: {
+        Args: { p_lane_id: string; p_rfq_id: string; p_round?: number }
+        Returns: undefined
+      }
       emit_procurement_event: {
         Args: {
           p_entity_id: string
@@ -599,6 +929,7 @@ export type Database = {
         Returns: string
       }
       generate_award_number: { Args: never; Returns: string }
+      generate_bid_number: { Args: never; Returns: string }
       generate_quote_number: { Args: never; Returns: string }
       generate_rate_card_number: { Args: never; Returns: string }
       generate_rfq_number: { Args: never; Returns: string }
