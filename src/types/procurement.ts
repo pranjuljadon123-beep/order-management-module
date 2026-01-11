@@ -172,9 +172,12 @@ export interface BenchmarkRate {
 }
 
 // Form types for creating/updating
+export type RfqType = 'spot' | 'contract';
+
 export interface CreateRfqInput {
   title: string;
   mode: TransportMode;
+  rfq_type?: RfqType;
   incoterms?: string;
   contract_duration_months?: number;
   estimated_annual_volume?: string;
