@@ -1,38 +1,37 @@
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ShipmentMap } from "@/components/dashboard/ShipmentMap";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { TrackingSidebar } from "@/components/tracking/TrackingSidebar";
+import { TrackingHeader } from "@/components/tracking/TrackingHeader";
+import { IncidentAlert } from "@/components/tracking/IncidentAlert";
+import { QuickAddShipment } from "@/components/tracking/QuickAddShipment";
+import { ShipmentList } from "@/components/tracking/ShipmentList";
 
 const Tracking = () => {
   return (
     <AppLayout>
-      <div className="mb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Live Tracking
-            </h1>
-            <p className="mt-1 text-muted-foreground">
-              Real-time visibility across all transport modes
-            </p>
+      <div className="flex h-full -mx-6 -mt-6">
+        {/* Sidebar */}
+        <TrackingSidebar />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-auto">
+          {/* Header */}
+          <div className="p-4 border-b border-border bg-background">
+            <TrackingHeader />
           </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Enter tracking number..."
-                className="w-80 pl-10"
-              />
-            </div>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              Track
-            </Button>
+
+          {/* Content */}
+          <div className="flex-1 p-4 space-y-4 bg-muted/30">
+            {/* Incident Alert */}
+            <IncidentAlert />
+
+            {/* Quick Add */}
+            <QuickAddShipment />
+
+            {/* Shipment List */}
+            <ShipmentList />
           </div>
         </div>
       </div>
-
-      <ShipmentMap />
     </AppLayout>
   );
 };
