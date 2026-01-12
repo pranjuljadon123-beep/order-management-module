@@ -27,9 +27,9 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 46%;
 
-    /* Material Purple Accent - #9c27b0 */
-    --accent: 291 64% 42%;
-    --accent-foreground: 0 0% 100%;
+    /* White Accent with Blue foreground */
+    --accent: 0 0% 100%;
+    --accent-foreground: 210 79% 46%;
 
     /* Material Red Destructive - #d32f2f */
     --destructive: 0 65% 51%;
@@ -46,8 +46,8 @@
     --mui-blue-light: 210 79% 90%;
     --mui-blue-dark: 210 79% 36%;
     
-    --mui-purple: 291 64% 42%;
-    --mui-purple-light: 291 64% 90%;
+    --mui-purple: 210 79% 46%;
+    --mui-purple-light: 210 79% 90%;
     
     --success: 123 46% 34%;
     --success-light: 123 46% 90%;
@@ -70,7 +70,7 @@
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(210 79% 46%) 0%, hsl(210 79% 56%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(291 64% 42%) 0%, hsl(291 64% 52%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(210 79% 46%) 0%, hsl(210 79% 56%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
 
@@ -101,9 +101,9 @@
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 64%;
 
-    /* Material Purple Light - #ce93d8 */
-    --accent: 294 54% 71%;
-    --accent-foreground: 0 0% 0%;
+    /* White Accent for dark mode */
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 100%;
