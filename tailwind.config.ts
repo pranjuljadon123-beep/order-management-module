@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Roboto', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -60,14 +60,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        cyan: {
-          DEFAULT: "hsl(var(--cyan))",
-          light: "hsl(var(--cyan-light))",
-          glow: "hsl(var(--cyan-glow))",
+        "mui-blue": {
+          DEFAULT: "hsl(var(--mui-blue))",
+          light: "hsl(var(--mui-blue-light))",
+          dark: "hsl(var(--mui-blue-dark))",
         },
-        navy: {
-          DEFAULT: "hsl(var(--navy))",
-          light: "hsl(var(--navy-light))",
+        "mui-purple": {
+          DEFAULT: "hsl(var(--mui-purple))",
+          light: "hsl(var(--mui-purple-light))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",
@@ -105,8 +105,8 @@ export default {
           to: { opacity: "1", transform: "translateX(0)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--cyan) / 0.3)" },
-          "50%": { boxShadow: "0 0 30px hsl(var(--cyan) / 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--mui-blue) / 0.3)" },
+          "50%": { boxShadow: "0 0 30px hsl(var(--mui-blue) / 0.5)" },
         },
         "count-up": {
           from: { opacity: "0", transform: "scale(0.8)" },
