@@ -1,6 +1,8 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -18,35 +20,88 @@ const carriers = [
   { value: "cosu", label: "COSU - COSCO" },
 ];
 
-export function QuickAddShipment() {
+interface QuickAddShipmentProps {
+  onAddShipment: (containerId: string, carrier: string) => void;
+  onViewIntegrations: () => void;
+}
+
+export function QuickAddShipment({ onAddShipment, onViewIntegrations }: QuickAddShipmentProps) {
+  const [containerId, setContainerId] = useState("");
+  const [carrier, setCarrier] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleTrackShipment = async () => {
+    if (!containerId.trim()) {
+      toast.error("Please enter a B/L Number or Container Number");
+      return;
+    }
+    if (!carrier) {
+      toast.error("Please select a carrier");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    onAddShipment(containerId.trim().toUpperCase(), carrier);
+    toast.success(`Shipment ${containerId.toUpperCase()} added successfully`);
+    
+    setContainerId("");
+    setCarrier("");
+    setIsLoading(false);
+  };
+
   return (
-    <div className="flex items-center gap-4 bg-card border border-border rounded-lg px-4 py-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-        Quick Add Shipment
-        <ArrowRight className="h-4 w-4" />
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-card border border-border rounded-lg px-3 sm:px-4 py-3">
+      <div className="flex items-center gap-2 text-sm font-medium text-foreground flex-shrink-0">
+        <span>Quick Add Shipment</span>
+        <ArrowRight className="h-4 w-4 hidden sm:block" />
       </div>
 
-      <Input 
-        placeholder="B/L Number or Container Number" 
-        className="flex-1 max-w-xs"
-      />
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
+        <Input 
+          placeholder="B/L Number or Container Number" 
+          className="flex-1 min-w-0 sm:max-w-xs"
+          value={containerId}
+          onChange={(e) => setContainerId(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleTrackShipment()}
+        />
 
-      <Select>
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder="Select Carrier" />
-        </SelectTrigger>
-        <SelectContent>
-          {carriers.map((carrier) => (
-            <SelectItem key={carrier.value} value={carrier.value}>
-              {carrier.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <Select value={carrier} onValueChange={setCarrier}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Select Carrier" />
+          </SelectTrigger>
+          <SelectContent className="bg-popover">
+            {carriers.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Button>Track Shipment</Button>
+      <div className="flex gap-2">
+        <Button 
+          onClick={handleTrackShipment} 
+          disabled={isLoading}
+          className="flex-1 sm:flex-none"
+        >
+          {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          Track Shipment
+        </Button>
 
-      <Button variant="outline">View All Integrations</Button>
+        <Button 
+          variant="outline" 
+          onClick={onViewIntegrations}
+          className="flex-1 sm:flex-none"
+        >
+          <span className="hidden sm:inline">View All Integrations</span>
+          <span className="sm:hidden">Integrations</span>
+        </Button>
+      </div>
     </div>
   );
 }
