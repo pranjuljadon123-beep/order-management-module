@@ -75,14 +75,14 @@ export function TrackingSidebar({
 
   if (collapsed) {
     return (
-      <div className="w-12 flex-shrink-0 bg-card border-l border-border flex flex-col items-center py-4">
+      <div className="w-12 flex-shrink-0 bg-card border-r border-border flex flex-col items-center py-4">
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8 mb-4"
           onClick={() => setCollapsed(false)}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="icon" className="h-8 w-8 mb-2" onClick={onBulkUpload}>
           <Upload className="h-4 w-4" />
@@ -106,16 +106,16 @@ export function TrackingSidebar({
   }
 
   return (
-    <div className="w-64 flex-shrink-0 bg-card border-l border-border flex flex-col">
+    <div className="w-64 flex-shrink-0 bg-card border-r border-border flex flex-col">
       {/* Collapse Button */}
-      <div className="flex justify-start p-2">
+      <div className="flex justify-end p-2">
         <Button
           variant="ghost"
           size="icon"
           className="h-6 w-6"
           onClick={() => setCollapsed(true)}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4" />
         </Button>
       </div>
 
