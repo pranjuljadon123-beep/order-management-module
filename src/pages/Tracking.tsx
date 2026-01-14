@@ -6,8 +6,10 @@ import { QuickAddShipment } from "@/components/tracking/QuickAddShipment";
 import { ShipmentList } from "@/components/tracking/ShipmentList";
 import { AddShipmentDialog } from "@/components/tracking/AddShipmentDialog";
 import { BulkUploadDialog } from "@/components/tracking/BulkUploadDialog";
+import { ShipmentDetailView } from "@/components/tracking/ShipmentDetailView";
 import { useTracking } from "@/hooks/useTracking";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const Tracking = () => {
   const {
@@ -40,6 +42,7 @@ const Tracking = () => {
     markIncidentAsRead,
     resetFilters,
     exportData,
+    selectedShipment,
     setSelectedShipment,
   } = useTracking();
 
@@ -52,6 +55,20 @@ const Tracking = () => {
   const handleViewIntegrations = () => {
     toast.info("Integrations panel coming soon!");
   };
+
+  // If a shipment is selected, show the detail view
+  if (selectedShipment) {
+    return (
+      <AppLayout>
+        <div className="h-full -mx-6 -mt-6">
+          <ShipmentDetailView
+            shipment={selectedShipment}
+            onBack={() => setSelectedShipment(null)}
+          />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -68,8 +85,10 @@ const Tracking = () => {
           onBulkUpload={() => setIsBulkUploadOpen(true)}
         />
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* Main Content - Transitions smoothly when sidebar collapses */}
+        <div className={cn(
+          "flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300"
+        )}>
           {/* Header */}
           <div className="p-3 sm:p-4 border-b border-border bg-background flex-shrink-0">
             <TrackingHeader
@@ -90,7 +109,7 @@ const Tracking = () => {
             />
           </div>
 
-          {/* Content */}
+          {/* Content - Grid auto-adjusts based on available space */}
           <div className="flex-1 p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30 overflow-auto">
             {/* Incident Alert */}
             <IncidentAlert
@@ -111,6 +130,7 @@ const Tracking = () => {
               viewMode={viewMode}
               onSelectShipment={setSelectedShipment}
               onMarkAlertRead={markAlertAsRead}
+              sidebarCollapsed={sidebarCollapsed}
             />
           </div>
         </div>
