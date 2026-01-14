@@ -21,8 +21,13 @@ export function IncidentAlert({
   
   if (unreadIncidents.length === 0) return null;
   
-  const currentIncident = unreadIncidents[currentIndex];
+  // Ensure currentIndex is within bounds
+  const safeIndex = Math.min(currentIndex, unreadIncidents.length - 1);
+  const currentIncident = unreadIncidents[safeIndex];
   const total = unreadIncidents.length;
+
+  // Extra safety check
+  if (!currentIncident) return null;
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : total - 1));
