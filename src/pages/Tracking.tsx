@@ -73,22 +73,8 @@ const Tracking = () => {
   return (
     <AppLayout>
       <div className="flex h-full -mx-6 -mt-6">
-        {/* Sidebar */}
-        <TrackingSidebar
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          shipmentFilter={shipmentFilter}
-          setShipmentFilter={setShipmentFilter}
-          stats={stats}
-          collapsed={sidebarCollapsed}
-          setCollapsed={setSidebarCollapsed}
-          onBulkUpload={() => setIsBulkUploadOpen(true)}
-        />
-
-        {/* Main Content - Transitions smoothly when sidebar collapses */}
-        <div className={cn(
-          "flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300"
-        )}>
+        {/* Main Content - Fills all available space */}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300">
           {/* Header */}
           <div className="p-3 sm:p-4 border-b border-border bg-background flex-shrink-0">
             <TrackingHeader
@@ -134,6 +120,18 @@ const Tracking = () => {
             />
           </div>
         </div>
+
+        {/* Sidebar - Now on the RIGHT side */}
+        <TrackingSidebar
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          shipmentFilter={shipmentFilter}
+          setShipmentFilter={setShipmentFilter}
+          stats={stats}
+          collapsed={sidebarCollapsed}
+          setCollapsed={setSidebarCollapsed}
+          onBulkUpload={() => setIsBulkUploadOpen(true)}
+        />
       </div>
 
       {/* Dialogs */}
