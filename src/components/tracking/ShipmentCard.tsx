@@ -52,6 +52,8 @@ interface ShipmentCardProps {
     emptyReturn: boolean;
   };
   alert?: string;
+  onSelect?: () => void;
+  onMarkAlertRead?: () => void;
 }
 
 const getFlagEmoji = (countryCode: string) => {
@@ -98,6 +100,8 @@ export function ShipmentCard({
   status,
   progress,
   alert,
+  onSelect,
+  onMarkAlertRead,
 }: ShipmentCardProps) {
   const statusBadge = getStatusBadge(status);
 
@@ -256,7 +260,7 @@ export function ShipmentCard({
             <AlertTriangle className="h-4 w-4" />
             {alert}
           </div>
-          <Button size="sm" className="gap-2">
+          <Button size="sm" className="gap-2" onClick={onMarkAlertRead}>
             <Check className="h-3 w-3" />
             Mark as Read
           </Button>
