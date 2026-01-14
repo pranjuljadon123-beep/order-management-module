@@ -1,17 +1,30 @@
 import { useState, useCallback, useMemo } from "react";
+import type { ViewMode, ShipmentFilter } from "@/components/tracking/TrackingSidebar";
 
 export interface Shipment {
   id: string;
   containerId: string;
-  rfNumber: string;
-  carrier: string;
-  carrierCode: string;
-  origin: { city: string; country: string; flag: string };
-  destination: { city: string; country: string; flag: string };
+  rfNumber?: string;
+  carrier: {
+    code: string;
+    name: string;
+  };
+  origin: {
+    port: string;
+    country: string;
+    countryCode: string;
+  };
+  destination: {
+    port: string;
+    country: string;
+    countryCode: string;
+  };
   consignee: string;
-  carrierETA: string;
-  prediction: { days: number; type: "early" | "late" | "on-time" };
-  status: "delayed" | "active" | "completed" | "pending";
+  carrierEta?: string;
+  prediction?: {
+    daysLate: number;
+  };
+  status: "delayed" | "active" | "on-time" | "completed";
   isNew: boolean;
   progress: {
     emptyPickup: boolean;
@@ -35,57 +48,78 @@ export interface Incident {
   isRead: boolean;
 }
 
-export type ViewMode = "list" | "grid" | "calendar";
 export type TimeFilter = "24h" | "7d" | "30d" | "3m" | "6m" | "1y";
 export type SortOption = "a-z" | "z-a" | "newest" | "oldest" | "eta-earliest" | "eta-latest";
-export type ShipmentFilter = "all" | "in-transit" | "completed" | "delayed" | "pending";
 
 const mockShipments: Shipment[] = [
   {
     id: "1",
-    containerId: "CAIU7012639",
-    rfNumber: "RF12345",
-    carrier: "MSC Mediterranean Shipping Company",
-    carrierCode: "MSCU",
-    origin: { city: "Shanghai", country: "China", flag: "🇨🇳" },
-    destination: { city: "Rotterdam", country: "Netherlands", flag: "🇳🇱" },
-    consignee: "DELIGHT INTERNATIONAL FREIGHT FORWARDER LLC",
-    carrierETA: "15 Jan 2026",
-    prediction: { days: 2, type: "late" },
+    containerId: "TRHU6873407",
+    rfNumber: undefined,
+    carrier: { code: "MSCU", name: "MSC" },
+    origin: { port: "Ennore, India, INENR", country: "India", countryCode: "IN" },
+    destination: { port: "Chicago, USA, USCHI", country: "USA", countryCode: "US" },
+    consignee: "Demo_Con...",
+    carrierEta: undefined,
+    prediction: { daysLate: 13 },
     status: "delayed",
     isNew: true,
     progress: {
       emptyPickup: true,
       gateIn: true,
       origin: true,
-      transhipment: { current: 1, total: 2 },
+      transhipment: { current: 0, total: 2 },
       destination: false,
       gateOut: false,
       emptyReturn: false,
     },
-    alert: "Vessel delay reported at Singapore port - Expected 2 days delay",
+    alert: "Carrier ETA Delayed by 1 day for New York, US. Old Carrier ETA: 2026-02-13 to New Carrier ETA: 2026-02-14.",
     createdAt: new Date("2026-01-10"),
     updatedAt: new Date("2026-01-13"),
   },
   {
     id: "2",
-    containerId: "MSCU8234567",
-    rfNumber: "RF12346",
-    carrier: "Maersk Line",
-    carrierCode: "MAEU",
-    origin: { city: "Los Angeles", country: "USA", flag: "🇺🇸" },
-    destination: { city: "Hamburg", country: "Germany", flag: "🇩🇪" },
-    consignee: "EURO LOGISTICS GMBH",
-    carrierETA: "20 Jan 2026",
-    prediction: { days: 0, type: "on-time" },
+    containerId: "MEDUKJ783019",
+    rfNumber: undefined,
+    carrier: { code: "MSCU", name: "MSC" },
+    origin: { port: "Rotterdam, Netherlands", country: "Netherlands", countryCode: "NL" },
+    destination: { port: "Kampala, Uganda, UGKL", country: "Uganda", countryCode: "UG" },
+    consignee: "Demo_Con...",
+    carrierEta: undefined,
+    prediction: { daysLate: 11 },
     status: "active",
-    isNew: false,
+    isNew: true,
     progress: {
       emptyPickup: true,
       gateIn: true,
       origin: true,
-      transhipment: { current: 2, total: 2 },
-      destination: true,
+      transhipment: { current: 0, total: 2 },
+      destination: false,
+      gateOut: false,
+      emptyReturn: false,
+    },
+    alert: "Carrier ETA Pre-poned by 1 day for Mombasa, KE. Old Carrier ETA: 2026-03-14 to New Carrier ETA: 2026-03-13.",
+    createdAt: new Date("2026-01-08"),
+    updatedAt: new Date("2026-01-13"),
+  },
+  {
+    id: "3",
+    containerId: "CXRU1542167",
+    rfNumber: undefined,
+    carrier: { code: "MSCU", name: "MSC" },
+    origin: { port: "JNPT (Nhava Sheva), Mumbai", country: "India", countryCode: "IN" },
+    destination: { port: "New York, USA, USNYC", country: "USA", countryCode: "US" },
+    consignee: "Demo_Con...",
+    carrierEta: "09 Feb 2026",
+    prediction: { daysLate: 2 },
+    status: "delayed",
+    isNew: true,
+    progress: {
+      emptyPickup: true,
+      gateIn: true,
+      origin: true,
+      transhipment: { current: 0, total: 2 },
+      destination: false,
       gateOut: false,
       emptyReturn: false,
     },
@@ -93,18 +127,16 @@ const mockShipments: Shipment[] = [
     updatedAt: new Date("2026-01-12"),
   },
   {
-    id: "3",
-    containerId: "HLCU9876543",
-    rfNumber: "RF12347",
-    carrier: "Hapag-Lloyd",
-    carrierCode: "HLCU",
-    origin: { city: "Mumbai", country: "India", flag: "🇮🇳" },
-    destination: { city: "Felixstowe", country: "UK", flag: "🇬🇧" },
-    consignee: "BRITISH IMPORTS LTD",
-    carrierETA: "18 Jan 2026",
-    prediction: { days: 1, type: "early" },
-    status: "active",
-    isNew: true,
+    id: "4",
+    containerId: "HLBU2847592",
+    rfNumber: "RF-2026-001",
+    carrier: { code: "HLCU", name: "Hapag-Lloyd" },
+    origin: { port: "Shanghai, China", country: "China", countryCode: "CN" },
+    destination: { port: "Hamburg, Germany", country: "Germany", countryCode: "DE" },
+    consignee: "Freight_Co...",
+    carrierEta: "15 Feb 2026",
+    prediction: { daysLate: 0 },
+    status: "on-time",
     progress: {
       emptyPickup: true,
       gateIn: true,
@@ -114,33 +146,33 @@ const mockShipments: Shipment[] = [
       gateOut: false,
       emptyReturn: false,
     },
-    createdAt: new Date("2026-01-08"),
-    updatedAt: new Date("2026-01-13"),
+    isNew: false,
+    createdAt: new Date("2026-01-01"),
+    updatedAt: new Date("2026-01-10"),
   },
   {
-    id: "4",
-    containerId: "CMDU1122334",
-    rfNumber: "RF12348",
-    carrier: "CMA CGM",
-    carrierCode: "CMDU",
-    origin: { city: "Singapore", country: "Singapore", flag: "🇸🇬" },
-    destination: { city: "Sydney", country: "Australia", flag: "🇦🇺" },
-    consignee: "PACIFIC TRADE CO",
-    carrierETA: "12 Jan 2026",
-    prediction: { days: 0, type: "on-time" },
+    id: "5",
+    containerId: "EGLV3948271",
+    rfNumber: "RF-2026-002",
+    carrier: { code: "EGLV", name: "Evergreen" },
+    origin: { port: "Singapore", country: "Singapore", countryCode: "SG" },
+    destination: { port: "Dubai, UAE", country: "UAE", countryCode: "AE" },
+    consignee: "Global_Im...",
+    carrierEta: "20 Jan 2026",
+    prediction: { daysLate: 0 },
     status: "completed",
     isNew: false,
     progress: {
       emptyPickup: true,
       gateIn: true,
       origin: true,
-      transhipment: { current: 1, total: 1 },
+      transhipment: { current: 0, total: 0 },
       destination: true,
       gateOut: true,
       emptyReturn: true,
     },
-    createdAt: new Date("2026-01-01"),
-    updatedAt: new Date("2026-01-12"),
+    createdAt: new Date("2025-12-15"),
+    updatedAt: new Date("2026-01-09"),
   },
 ];
 
@@ -187,7 +219,10 @@ export function useTracking() {
         if (shipmentFilter === "in-transit") return s.status === "active";
         if (shipmentFilter === "completed") return s.status === "completed";
         if (shipmentFilter === "delayed") return s.status === "delayed";
-        if (shipmentFilter === "pending") return s.status === "pending";
+        if (shipmentFilter === "yet-to-start") return s.status === "on-time" && !s.progress.origin;
+        if (shipmentFilter === "archived") return false; // No archived status in current mock
+        if (shipmentFilter === "invalid") return false; // No invalid status in current mock
+        if (shipmentFilter === "action-required") return !!s.alert;
         return true;
       });
     }
@@ -210,8 +245,8 @@ export function useTracking() {
       result = result.filter(
         (s) =>
           s.containerId.toLowerCase().includes(query) ||
-          s.rfNumber.toLowerCase().includes(query) ||
-          s.carrier.toLowerCase().includes(query) ||
+          (s.rfNumber && s.rfNumber.toLowerCase().includes(query)) ||
+          s.carrier.name.toLowerCase().includes(query) ||
           s.consignee.toLowerCase().includes(query)
       );
     }
@@ -241,9 +276,9 @@ export function useTracking() {
         case "oldest":
           return a.createdAt.getTime() - b.createdAt.getTime();
         case "eta-earliest":
-          return new Date(a.carrierETA).getTime() - new Date(b.carrierETA).getTime();
+          return (a.carrierEta || "").localeCompare(b.carrierEta || "");
         case "eta-latest":
-          return new Date(b.carrierETA).getTime() - new Date(a.carrierETA).getTime();
+          return (b.carrierEta || "").localeCompare(a.carrierEta || "");
         default:
           return 0;
       }
@@ -255,11 +290,13 @@ export function useTracking() {
   const stats = useMemo(() => {
     return {
       all: shipments.length,
-      inTransit: shipments.filter((s) => s.status === "active").length,
+      yetToStart: shipments.filter((s) => s.status === "on-time" && !s.progress.origin).length,
+      inTransit: shipments.filter((s) => s.status === "active" || (s.status === "on-time" && s.progress.origin && !s.progress.destination)).length,
       completed: shipments.filter((s) => s.status === "completed").length,
+      archived: 0,
+      invalid: 0,
+      actionRequired: shipments.filter((s) => !!s.alert).length,
       delayed: shipments.filter((s) => s.status === "delayed").length,
-      pending: shipments.filter((s) => s.status === "pending").length,
-      newDelays: shipments.filter((s) => s.status === "delayed" && s.isNew).length,
     };
   }, [shipments]);
 
@@ -278,22 +315,26 @@ export function useTracking() {
 
   // Actions
   const addShipment = useCallback((containerId: string, carrier: string) => {
+    const carrierMap: Record<string, { code: string; name: string }> = {
+      mscu: { code: "MSCU", name: "MSC Mediterranean Shipping Company" },
+      maeu: { code: "MAEU", name: "Maersk Line" },
+      hlcu: { code: "HLCU", name: "Hapag-Lloyd" },
+      cmdu: { code: "CMDU", name: "CMA CGM" },
+      eglv: { code: "EGLV", name: "Evergreen" },
+      cosu: { code: "COSU", name: "COSCO" },
+    };
+
     const newShipment: Shipment = {
       id: Date.now().toString(),
       containerId,
       rfNumber: `RF${Math.floor(Math.random() * 100000)}`,
-      carrier: carrier === "mscu" ? "MSC Mediterranean Shipping Company" : 
-               carrier === "maeu" ? "Maersk Line" :
-               carrier === "hlcu" ? "Hapag-Lloyd" :
-               carrier === "cmdu" ? "CMA CGM" :
-               carrier === "eglv" ? "Evergreen" : "COSCO",
-      carrierCode: carrier.toUpperCase(),
-      origin: { city: "Unknown", country: "Unknown", flag: "🌍" },
-      destination: { city: "Unknown", country: "Unknown", flag: "🌍" },
+      carrier: carrierMap[carrier] || { code: carrier.toUpperCase(), name: carrier },
+      origin: { port: "Unknown", country: "Unknown", countryCode: "XX" },
+      destination: { port: "Unknown", country: "Unknown", countryCode: "XX" },
       consignee: "TBD",
-      carrierETA: "TBD",
-      prediction: { days: 0, type: "on-time" },
-      status: "pending",
+      carrierEta: undefined,
+      prediction: { daysLate: 0 },
+      status: "active",
       isNew: true,
       progress: {
         emptyPickup: false,
@@ -333,22 +374,20 @@ export function useTracking() {
   }, []);
 
   const exportData = useCallback((format: "csv" | "excel" | "pdf") => {
-    // In a real app, this would trigger a download
     console.log(`Exporting ${filteredShipments.length} shipments as ${format}`);
-    // For now, we'll just log - this would be implemented with actual export logic
     const data = filteredShipments.map((s) => ({
       containerId: s.containerId,
-      rfNumber: s.rfNumber,
-      carrier: s.carrier,
-      origin: `${s.origin.city}, ${s.origin.country}`,
-      destination: `${s.destination.city}, ${s.destination.country}`,
+      rfNumber: s.rfNumber || "",
+      carrier: s.carrier.name,
+      origin: `${s.origin.port}, ${s.origin.country}`,
+      destination: `${s.destination.port}, ${s.destination.country}`,
       consignee: s.consignee,
-      eta: s.carrierETA,
+      eta: s.carrierEta || "N/A",
       status: s.status,
     }));
     
-    if (format === "csv") {
-      const headers = Object.keys(data[0] || {}).join(",");
+    if (format === "csv" && data.length > 0) {
+      const headers = Object.keys(data[0]).join(",");
       const rows = data.map((row) => Object.values(row).join(",")).join("\n");
       const csv = `${headers}\n${rows}`;
       const blob = new Blob([csv], { type: "text/csv" });
