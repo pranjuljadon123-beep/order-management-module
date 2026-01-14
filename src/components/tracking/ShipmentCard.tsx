@@ -41,7 +41,7 @@ interface ShipmentCardProps {
   prediction?: {
     daysLate: number;
   };
-  status: "delayed" | "active" | "on-time" | "completed";
+  status: "yet-to-start" | "in-transit" | "delayed" | "completed";
   progress: {
     emptyPickup: boolean;
     gateIn: boolean;
@@ -76,10 +76,10 @@ const getStatusBadge = (status: string) => {
   switch (status) {
     case "delayed":
       return { label: "DELAYED", className: "bg-destructive text-destructive-foreground" };
-    case "active":
-      return { label: "ACTIVE", className: "bg-primary text-primary-foreground" };
-    case "on-time":
-      return { label: "ON TIME", className: "bg-success text-white" };
+    case "in-transit":
+      return { label: "IN TRANSIT", className: "bg-primary text-primary-foreground" };
+    case "yet-to-start":
+      return { label: "YET TO START", className: "bg-warning text-white" };
     case "completed":
       return { label: "COMPLETED", className: "bg-muted text-muted-foreground" };
     default:

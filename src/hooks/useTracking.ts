@@ -24,7 +24,7 @@ export interface Shipment {
   prediction?: {
     daysLate: number;
   };
-  status: "delayed" | "active" | "on-time" | "completed";
+  status: "yet-to-start" | "in-transit" | "delayed" | "completed";
   isNew: boolean;
   progress: {
     emptyPickup: boolean;
@@ -62,7 +62,7 @@ const mockShipments: Shipment[] = [
     consignee: "Demo_Con...",
     carrierEta: undefined,
     prediction: { daysLate: 13 },
-    status: "delayed",
+    status: "in-transit",
     isNew: true,
     progress: {
       emptyPickup: true,
@@ -87,7 +87,7 @@ const mockShipments: Shipment[] = [
     consignee: "Demo_Con...",
     carrierEta: undefined,
     prediction: { daysLate: 11 },
-    status: "active",
+    status: "in-transit",
     isNew: true,
     progress: {
       emptyPickup: true,
@@ -136,12 +136,12 @@ const mockShipments: Shipment[] = [
     consignee: "Freight_Co...",
     carrierEta: "15 Feb 2026",
     prediction: { daysLate: 0 },
-    status: "on-time",
+    status: "yet-to-start",
     progress: {
-      emptyPickup: true,
-      gateIn: true,
-      origin: true,
-      transhipment: { current: 1, total: 1 },
+      emptyPickup: false,
+      gateIn: false,
+      origin: false,
+      transhipment: { current: 0, total: 1 },
       destination: false,
       gateOut: false,
       emptyReturn: false,
@@ -173,6 +173,30 @@ const mockShipments: Shipment[] = [
     },
     createdAt: new Date("2025-12-15"),
     updatedAt: new Date("2026-01-09"),
+  },
+  {
+    id: "6",
+    containerId: "OOLU9283746",
+    rfNumber: "RF-2026-003",
+    carrier: { code: "OOLU", name: "OOCL" },
+    origin: { port: "Busan, South Korea", country: "South Korea", countryCode: "KR" },
+    destination: { port: "Los Angeles, USA", country: "USA", countryCode: "US" },
+    consignee: "West_Coast...",
+    carrierEta: "28 Jan 2026",
+    prediction: { daysLate: 0 },
+    status: "yet-to-start",
+    isNew: false,
+    progress: {
+      emptyPickup: false,
+      gateIn: false,
+      origin: false,
+      transhipment: { current: 0, total: 0 },
+      destination: false,
+      gateOut: false,
+      emptyReturn: false,
+    },
+    createdAt: new Date("2026-01-12"),
+    updatedAt: new Date("2026-01-13"),
   },
 ];
 
@@ -216,12 +240,12 @@ export function useTracking() {
     // Apply shipment filter
     if (shipmentFilter !== "all") {
       result = result.filter((s) => {
-        if (shipmentFilter === "in-transit") return s.status === "active";
+        if (shipmentFilter === "in-transit") return s.status === "in-transit";
         if (shipmentFilter === "completed") return s.status === "completed";
         if (shipmentFilter === "delayed") return s.status === "delayed";
-        if (shipmentFilter === "yet-to-start") return s.status === "on-time" && !s.progress.origin;
-        if (shipmentFilter === "archived") return false; // No archived status in current mock
-        if (shipmentFilter === "invalid") return false; // No invalid status in current mock
+        if (shipmentFilter === "yet-to-start") return s.status === "yet-to-start";
+        if (shipmentFilter === "archived") return false;
+        if (shipmentFilter === "invalid") return false;
         if (shipmentFilter === "action-required") return !!s.alert;
         return true;
       });
@@ -290,8 +314,8 @@ export function useTracking() {
   const stats = useMemo(() => {
     return {
       all: shipments.length,
-      yetToStart: shipments.filter((s) => s.status === "on-time" && !s.progress.origin).length,
-      inTransit: shipments.filter((s) => s.status === "active" || (s.status === "on-time" && s.progress.origin && !s.progress.destination)).length,
+      yetToStart: shipments.filter((s) => s.status === "yet-to-start").length,
+      inTransit: shipments.filter((s) => s.status === "in-transit").length,
       completed: shipments.filter((s) => s.status === "completed").length,
       archived: 0,
       invalid: 0,
@@ -334,7 +358,7 @@ export function useTracking() {
       consignee: "TBD",
       carrierEta: undefined,
       prediction: { daysLate: 0 },
-      status: "active",
+      status: "yet-to-start",
       isNew: true,
       progress: {
         emptyPickup: false,

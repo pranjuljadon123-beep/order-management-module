@@ -8,6 +8,7 @@ interface ShipmentListProps {
   viewMode: ViewMode;
   onSelectShipment: (shipment: Shipment) => void;
   onMarkAlertRead: (shipmentId: string) => void;
+  sidebarCollapsed?: boolean;
 }
 
 export function ShipmentList({
@@ -15,6 +16,7 @@ export function ShipmentList({
   viewMode,
   onSelectShipment,
   onMarkAlertRead,
+  sidebarCollapsed = false,
 }: ShipmentListProps) {
   if (shipments.length === 0) {
     return (
@@ -27,8 +29,14 @@ export function ShipmentList({
 
   return (
     <div className={cn(
-      "flex flex-col gap-4",
-      viewMode === "grid" && "grid grid-cols-1 lg:grid-cols-2 gap-4"
+      "flex flex-col gap-4 transition-all duration-300",
+      viewMode === "grid" && cn(
+        "grid gap-4",
+        // Auto-adjust columns based on sidebar state
+        sidebarCollapsed 
+          ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          : "grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
+      )
     )}>
       {shipments.map((shipment) => (
         <ShipmentCard
