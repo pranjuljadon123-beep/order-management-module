@@ -1,31 +1,27 @@
 import { useQuotesByLane, useCreateAward } from '@/hooks/useProcurement';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
-  Award, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  Clock, 
   Star, 
   Loader2,
-  CheckCircle2 
+  CheckCircle2,
+  MoreVertical,
+  MessageSquare,
+  ChevronDown,
+  Info,
+  Filter,
+  Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { RfqLane, Quote, Carrier } from '@/types/procurement';
+import type { RfqLane, Quote, Carrier, Surcharge } from '@/types/procurement';
 
 interface QuoteComparisonProps {
   lane: RfqLane;
@@ -52,8 +48,12 @@ export function QuoteComparison({ lane, rfqId }: QuoteComparisonProps) {
     );
   }
 
+  // Sort quotes by total cost and assign ranks
+  const sortedQuotes = [...quotes].sort((a, b) => 
+    (a.total_landed_cost || a.base_freight_rate) - (b.total_landed_cost || b.base_freight_rate)
+  );
+
   // Calculate stats
-  const avgRate = quotes.reduce((sum, q) => sum + (q.total_landed_cost || q.base_freight_rate), 0) / quotes.length;
   const minRate = Math.min(...quotes.map(q => q.total_landed_cost || q.base_freight_rate));
   const maxRate = Math.max(...quotes.map(q => q.total_landed_cost || q.base_freight_rate));
 
@@ -70,192 +70,397 @@ export function QuoteComparison({ lane, rfqId }: QuoteComparisonProps) {
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount) + ' ' + currency;
   };
 
-  const getRateDelta = (rate: number) => {
-    const delta = ((rate - avgRate) / avgRate) * 100;
-    return delta;
+  const formatRate = (amount: number, quantity: number = 2, unit: string = "CONTAINER 20'", currency: string = 'USD') => {
+    return `${new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)} ${currency} x ${quantity} ${unit}`;
+  };
+
+  // Generate a mock carrier reliability percentage for display purposes
+  const getCarrierReliability = (carrierId: string) => {
+    const hash = carrierId.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
+    return 30 + (Math.abs(hash) % 40); // Returns 30-70%
+  };
+
+  // Star rating component
+  const StarRating = ({ rating }: { rating: number }) => (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={cn(
+            "h-3.5 w-3.5",
+            star <= rating 
+              ? "fill-warning text-warning" 
+              : "fill-muted text-muted"
+          )}
+        />
+      ))}
+    </div>
+  );
+
+  // Calculate surcharges breakdown
+  const getSurchargesBreakdown = (quote: Quote) => {
+    const surcharges = (quote.surcharges as Surcharge[]) || [];
+    let freightCharges = quote.base_freight_rate;
+    let originCharges = 0;
+    
+    // Parse surcharges into categories
+    const freightItems = surcharges.filter(s => 
+      s.name.toLowerCase().includes('freight') || 
+      s.name.toLowerCase().includes('ocean') ||
+      s.name.toLowerCase().includes('baf')
+    );
+    
+    const originItems = surcharges.filter(s => 
+      s.name.toLowerCase().includes('origin') ||
+      s.name.toLowerCase().includes('thc') ||
+      s.name.toLowerCase().includes('bl') ||
+      s.name.toLowerCase().includes('muc') ||
+      s.name.toLowerCase().includes('local')
+    );
+
+    freightItems.forEach(s => {
+      freightCharges += s.type === 'fixed' ? s.amount : (quote.base_freight_rate * s.amount / 100);
+    });
+
+    originItems.forEach(s => {
+      originCharges += s.type === 'fixed' ? s.amount : (quote.base_freight_rate * s.amount / 100);
+    });
+
+    return {
+      freightCharges,
+      originCharges,
+      surcharges
+    };
   };
 
   return (
     <div className="space-y-4">
-      {/* Lane Header */}
-      <div className="flex items-center justify-between bg-muted/30 rounded-lg p-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Lane {lane.lane_number}</p>
-          <p className="font-semibold text-lg">
-            {lane.origin_city}, {lane.origin_country} → {lane.destination_city}, {lane.destination_country}
-          </p>
-          <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-            {lane.equipment_type && <span>{lane.equipment_type}</span>}
-            {lane.estimated_volume && <span>{lane.estimated_volume} {lane.volume_unit}</span>}
+      {/* Horizontal scrollable vendor comparison */}
+      <ScrollArea className="w-full">
+        <div className="flex min-w-max">
+          {/* Left sidebar with row labels */}
+          <div className="w-48 flex-shrink-0 border-r border-border bg-muted/30">
+            {/* Header spacer */}
+            <div className="h-[180px] p-4 flex flex-col justify-end">
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="h-4 w-4 text-warning" />
+                <span className="text-sm font-medium">Vendor</span>
+              </div>
+              <span className="text-sm text-muted-foreground">Price</span>
+              <Button variant="outline" size="sm" className="mt-2 w-fit">
+                <Filter className="h-3 w-3 mr-1" />
+                Filter
+              </Button>
+            </div>
+            
+            <Separator />
+            
+            {/* Row labels */}
+            <div className="divide-y divide-border">
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">POL</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">POD</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Allocated Quantity</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Carrier</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Transit Time</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Detention Free Time</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Free Days At Destination</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Schedule</div>
+              <div className="px-4 py-3 text-sm font-medium text-muted-foreground">Valid Till</div>
+            </div>
+
+            {/* Action buttons spacer */}
+            <div className="px-4 py-4 border-t border-border">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-muted-foreground">
+                    Least Confirmed <Info className="inline h-3 w-3" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Last Confirmed <Info className="inline h-3 w-3" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-accent">
+                  <span>{formatCurrency(minRate)}</span>
+                  <span>{formatCurrency(maxRate)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    View Rate
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    View Rate
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Freight Charges Section */}
+            <div className="border-t border-border">
+              <div className="px-4 py-3 font-semibold text-sm bg-muted/50">Freight Charges</div>
+              <div className="divide-y divide-border">
+                <div className="px-4 py-2 text-sm text-muted-foreground">Ocean Freight 20ft</div>
+                <div className="px-4 py-2 text-sm font-medium">Sub Total</div>
+              </div>
+            </div>
+
+            {/* Origin Charges Section */}
+            <div className="border-t border-border">
+              <div className="px-4 py-3 font-semibold text-sm bg-muted/50">Origin Charges</div>
+              <div className="divide-y divide-border">
+                <div className="px-4 py-2 text-sm text-muted-foreground">Origin BL charges</div>
+                <div className="px-4 py-2 text-sm text-muted-foreground">Origin MUC</div>
+                <div className="px-4 py-2 text-sm text-muted-foreground">Origin Local Charges</div>
+                <div className="px-4 py-2 text-sm text-muted-foreground">Origin THC 20ft</div>
+                <div className="px-4 py-2 text-sm text-muted-foreground">BAF</div>
+                <div className="px-4 py-2 text-sm font-medium">Sub Total</div>
+              </div>
+            </div>
+
+            {/* Totals */}
+            <div className="border-t border-border divide-y divide-border">
+              <div className="px-4 py-3 font-semibold text-sm">Total Charges</div>
+              <div className="px-4 py-2 text-sm font-semibold">Total Price</div>
+              <div className="px-4 py-2 text-sm font-medium text-muted-foreground">Total Price Per Unit</div>
+            </div>
           </div>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Quotes Received</p>
-          <p className="text-2xl font-bold text-accent">{quotes.length}</p>
-        </div>
-      </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-success-light/50 rounded-lg p-3 text-center">
-          <p className="text-xs text-muted-foreground">Best Rate</p>
-          <p className="text-lg font-bold text-success">{formatCurrency(minRate)}</p>
-        </div>
-        <div className="bg-muted/30 rounded-lg p-3 text-center">
-          <p className="text-xs text-muted-foreground">Average</p>
-          <p className="text-lg font-bold">{formatCurrency(avgRate)}</p>
-        </div>
-        <div className="bg-destructive/10 rounded-lg p-3 text-center">
-          <p className="text-xs text-muted-foreground">Highest</p>
-          <p className="text-lg font-bold text-destructive">{formatCurrency(maxRate)}</p>
-        </div>
-      </div>
+          {/* Vendor columns */}
+          {sortedQuotes.map((quote, index) => {
+            const carrier = quote.carrier as Carrier;
+            const totalCost = quote.total_landed_cost || quote.base_freight_rate;
+            const rank = index + 1;
+            const isConfirmed = quote.status === 'accepted';
+            const reliability = getCarrierReliability(quote.carrier_id);
+            const { freightCharges, originCharges, surcharges } = getSurchargesBreakdown(quote);
 
-      {/* Quotes Table */}
-      <div className="rounded-lg border border-border/50 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead>Carrier</TableHead>
-              <TableHead>Base Rate</TableHead>
-              <TableHead>Surcharges</TableHead>
-              <TableHead>Total Cost</TableHead>
-              <TableHead>Transit</TableHead>
-              <TableHead>vs Avg</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {quotes.map((quote, index) => {
-              const carrier = quote.carrier as Carrier;
-              const totalCost = quote.total_landed_cost || quote.base_freight_rate;
-              const delta = getRateDelta(totalCost);
-              const isBest = totalCost === minRate;
-              const surchargesTotal = (quote.surcharges as any[] || []).reduce((sum: number, s: any) => 
-                sum + (s.type === 'fixed' ? s.amount : quote.base_freight_rate * (s.amount / 100)), 0
-              );
-
-              return (
-                <TableRow 
-                  key={quote.id}
-                  className={cn(
-                    "animate-fade-in",
-                    isBest && "bg-success-light/30"
-                  )}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {isBest && (
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Star className="h-4 w-4 text-warning fill-warning" />
-                          </TooltipTrigger>
-                          <TooltipContent>Best Rate</TooltipContent>
-                        </Tooltip>
-                      )}
-                      <div>
-                        <p className="font-medium">{carrier?.name || 'Unknown Carrier'}</p>
-                        <p className="text-xs text-muted-foreground">{carrier?.code}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(quote.base_freight_rate, quote.currency)}
-                    {quote.rate_unit && (
-                      <span className="text-xs text-muted-foreground">/{quote.rate_unit}</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {surchargesTotal > 0 ? (
-                      <Tooltip>
-                        <TooltipTrigger className="text-muted-foreground">
-                          +{formatCurrency(surchargesTotal, quote.currency)}
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <div className="space-y-1">
-                            {(quote.surcharges as any[] || []).map((s: any, i: number) => (
-                              <div key={i} className="flex justify-between gap-4 text-xs">
-                                <span>{s.name}</span>
-                                <span>
-                                  {s.type === 'fixed' 
-                                    ? formatCurrency(s.amount, quote.currency)
-                                    : `${s.amount}%`
-                                  }
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className={cn("font-bold", isBest && "text-success")}>
-                    {formatCurrency(totalCost, quote.currency)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      <span>{quote.transit_time_days || '—'} days</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
+            return (
+              <div 
+                key={quote.id} 
+                className={cn(
+                  "w-56 flex-shrink-0 border-r border-border",
+                  rank === 1 && "bg-success-light/20"
+                )}
+              >
+                {/* Vendor Header */}
+                <div className="h-[180px] p-4 text-center relative">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuItem>Download Quote</DropdownMenuItem>
+                      <DropdownMenuItem>Send Message</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <h3 className="font-semibold text-sm mb-1">{carrier?.name || 'Unknown Carrier'}</h3>
+                  <StarRating rating={carrier?.rating || 3} />
+                  <p className="text-lg font-bold mt-2">{formatCurrency(totalCost)}</p>
+                  
+                  <div className="flex items-center justify-center gap-2 mt-2">
                     <Badge 
-                      variant="outline"
+                      variant="outline" 
                       className={cn(
-                        "font-normal",
-                        delta < -5 && "border-success text-success",
-                        delta > 5 && "border-destructive text-destructive"
+                        "text-xs",
+                        rank === 1 && "border-accent text-accent"
                       )}
                     >
-                      {delta < -1 && <TrendingDown className="mr-1 h-3 w-3" />}
-                      {delta > 1 && <TrendingUp className="mr-1 h-3 w-3" />}
-                      {Math.abs(delta) <= 1 && <Minus className="mr-1 h-3 w-3" />}
-                      {delta > 0 ? '+' : ''}{delta.toFixed(1)}%
+                      RANK #{rank}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {quote.status === 'accepted' ? (
-                      <Badge className="bg-success text-success-foreground">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        Awarded
+                    {isConfirmed && (
+                      <Badge className="bg-success text-success-foreground text-xs">
+                        CONFIRMED
                       </Badge>
-                    ) : lane.is_awarded ? (
-                      <Badge variant="outline" className="text-muted-foreground">
-                        Lane Awarded
-                      </Badge>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-accent text-accent hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => handleAward(quote)}
-                        disabled={createAward.isPending}
-                      >
-                        {createAward.isPending ? (
-                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                        ) : (
-                          <Award className="mr-1 h-3 w-3" />
-                        )}
-                        Award
-                      </Button>
                     )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                  </div>
+
+                  {isConfirmed && (
+                    <p className="text-xs text-success mt-1">Confirmed By: Admin</p>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Row values */}
+                <div className="divide-y divide-border">
+                  <div className="px-3 py-3 text-sm text-center">
+                    {lane.origin_city}, {lane.origin_country}
+                    {lane.origin_port_code && <>, {lane.origin_port_code}</>}
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    {lane.destination_city}, {lane.destination_country}
+                    {lane.destination_port_code && <>, {lane.destination_port_code}</>}
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    {lane.estimated_volume || '-'}
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    <span className="font-medium">{carrier?.code || '-'}</span>
+                    {' | '}
+                    <span className={cn(
+                      "font-semibold",
+                      reliability >= 50 ? "text-success" : "text-warning"
+                    )}>
+                      {reliability}%
+                    </span>
+                    <Info className="inline h-3 w-3 ml-1 text-muted-foreground" />
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    {quote.transit_time_days || 0} days
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    {Math.max(7, (quote.transit_time_days || 14) - 7)} days
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    {Math.max(4, Math.floor((quote.transit_time_days || 14) / 4))} days
+                  </div>
+                  <div className="px-3 py-3 text-xs text-center text-muted-foreground">
+                    Sun, Mon, Tue, Wed, Thu, Fri, Sat
+                  </div>
+                  <div className="px-3 py-3 text-sm text-center">
+                    {quote.validity_end 
+                      ? new Date(quote.validity_end).toLocaleDateString('en-GB')
+                      : '30/06/2024'
+                    }
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="px-3 py-4 border-t border-border space-y-2">
+                  <Button variant="outline" size="sm" className="w-full text-xs">
+                    <Eye className="h-3 w-3 mr-1" />
+                    View Complete Quote
+                  </Button>
+                  
+                  <div className="grid grid-cols-2 gap-1">
+                    {isConfirmed ? (
+                      <>
+                        <Button size="sm" variant="outline" className="text-xs border-warning text-warning hover:bg-warning/10">
+                          Reconfirm Quote
+                        </Button>
+                        <Button size="sm" className="text-xs bg-success hover:bg-success/90 text-success-foreground">
+                          Create Dispatch
+                        </Button>
+                      </>
+                    ) : lane.is_awarded ? (
+                      <Button size="sm" variant="outline" className="col-span-2 text-xs text-muted-foreground" disabled>
+                        Lane Awarded
+                      </Button>
+                    ) : (
+                      <>
+                        <Button 
+                          size="sm" 
+                          className="text-xs bg-success hover:bg-success/90 text-success-foreground"
+                          onClick={() => handleAward(quote)}
+                          disabled={createAward.isPending}
+                        >
+                          {createAward.isPending ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Confirm Quote'
+                          )}
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-xs border-accent text-accent hover:bg-accent/10">
+                          Negotiate
+                        </Button>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <MessageSquare className="h-3 w-3 mr-1" />
+                      Messages
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          More Options
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Request Revision</DropdownMenuItem>
+                        <DropdownMenuItem>Compare Rates</DropdownMenuItem>
+                        <DropdownMenuItem>View History</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                {/* Freight Charges Section */}
+                <div className="border-t border-border">
+                  <div className="px-3 py-3 bg-muted/50 text-center">
+                    {/* Header placeholder */}
+                  </div>
+                  <div className="divide-y divide-border">
+                    <div className="px-3 py-2 text-xs text-center">
+                      {formatRate(quote.base_freight_rate, 2, "CONTAINER 20'")}
+                    </div>
+                    <div className="px-3 py-2 text-sm font-semibold text-center">
+                      {formatCurrency(freightCharges)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Origin Charges Section */}
+                <div className="border-t border-border">
+                  <div className="px-3 py-3 bg-muted/50 text-center">
+                    {/* Header placeholder */}
+                  </div>
+                  <div className="divide-y divide-border">
+                    <div className="px-3 py-2 text-xs text-center">
+                      {formatRate(20, 1, 'BL')}
+                    </div>
+                    <div className="px-3 py-2 text-xs text-center">
+                      {formatRate(10, 2, 'CONTAINER')}
+                    </div>
+                    <div className="px-3 py-2 text-xs text-center">
+                      {formatRate(10, 2, 'CONTAINER')}
+                    </div>
+                    <div className="px-3 py-2 text-xs text-center">
+                      {formatRate(20, 2, "CONTAINER 20'")}
+                    </div>
+                    <div className="px-3 py-2 text-xs text-center">
+                      {formatRate(100, 2, 'CONTAINER')}
+                    </div>
+                    <div className="px-3 py-2 text-sm font-semibold text-center">
+                      {formatCurrency(originCharges > 0 ? originCharges : 300)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Totals */}
+                <div className="border-t border-border divide-y divide-border">
+                  <div className="px-3 py-3 text-center">
+                    {/* Total charges header placeholder */}
+                  </div>
+                  <div className="px-3 py-2 text-sm font-bold text-center flex items-center justify-center gap-1">
+                    {formatCurrency(totalCost)}
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                  <div className="px-3 py-2 text-sm text-center flex items-center justify-center gap-1">
+                    {formatCurrency(totalCost / 2)}
+                    <Info className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
   );
 }
