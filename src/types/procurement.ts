@@ -68,6 +68,9 @@ export interface Surcharge {
   type: 'fixed' | 'percentage';
 }
 
+// Type for surcharges as stored in DB (Json) vs parsed
+export type SurchargesJson = Surcharge[] | Record<string, unknown> | null;
+
 export interface Quote {
   id: string;
   quote_number: string;
@@ -83,7 +86,7 @@ export interface Quote {
   transit_time_days?: number;
   validity_start?: string;
   validity_end?: string;
-  surcharges: Surcharge[];
+  surcharges: SurchargesJson;
   total_landed_cost?: number;
   notes?: string;
   submitted_at: string;
@@ -132,7 +135,7 @@ export interface RateCard {
   base_rate: number;
   currency: string;
   rate_unit?: string;
-  surcharges: Surcharge[];
+  surcharges: SurchargesJson;
   total_rate?: number;
   valid_from: string;
   valid_to: string;

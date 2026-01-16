@@ -44,7 +44,7 @@ export function useRfqs(status?: string) {
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as Rfq[];
+      return data as unknown as Rfq[];
     },
   });
 }
@@ -64,7 +64,7 @@ export function useRfq(id: string) {
         .single();
       
       if (error) throw error;
-      return data as Rfq;
+      return data as unknown as Rfq;
     },
     enabled: !!id,
   });
@@ -182,7 +182,7 @@ export function useQuotesByRfq(rfqId: string) {
         .order('total_landed_cost', { ascending: true });
       
       if (error) throw error;
-      return data as Quote[];
+      return data as unknown as Quote[];
     },
     enabled: !!rfqId,
   });
@@ -203,7 +203,7 @@ export function useQuotesByLane(laneId: string) {
         .order('total_landed_cost', { ascending: true });
       
       if (error) throw error;
-      return data as Quote[];
+      return data as unknown as Quote[];
     },
     enabled: !!laneId,
   });
@@ -276,7 +276,7 @@ export function useAwardsByRfq(rfqId: string) {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Award[];
+      return data as unknown as Award[];
     },
     enabled: !!rfqId,
   });
@@ -374,7 +374,7 @@ export function useRateCards(active?: boolean) {
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as RateCard[];
+      return data as unknown as RateCard[];
     },
   });
 }
@@ -402,7 +402,7 @@ export function useGenerateRateCard() {
       const { data: rcNumber } = await supabase.rpc('generate_rate_card_number');
       
       const lane = award.lane as RfqLane;
-      const quote = award.quote as Quote;
+      const quote = award.quote as unknown as Quote;
       
       const { data, error } = await supabase
         .from('rate_cards')
