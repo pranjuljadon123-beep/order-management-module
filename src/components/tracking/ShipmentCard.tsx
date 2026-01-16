@@ -116,11 +116,19 @@ export function ShipmentCard({
   ];
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
+    <div 
+      className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
+      onClick={onSelect}
+    >
       {/* Main Content Row */}
       <div className="flex items-center gap-6 px-4 py-4">
         {/* Favorite */}
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-warning">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 text-muted-foreground hover:text-warning"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Star className="h-4 w-4" />
         </Button>
 
@@ -195,7 +203,7 @@ export function ShipmentCard({
         </Badge>
 
         {/* Actions */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Scissors className="h-4 w-4" />
           </Button>
@@ -209,7 +217,7 @@ export function ShipmentCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>View Details</DropdownMenuItem>
+              <DropdownMenuItem onClick={onSelect}>View Details</DropdownMenuItem>
               <DropdownMenuItem>Edit Shipment</DropdownMenuItem>
               <DropdownMenuItem>Archive</DropdownMenuItem>
               <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
@@ -255,7 +263,10 @@ export function ShipmentCard({
 
       {/* Alert Message */}
       {alert && (
-        <div className="flex items-center justify-between px-4 py-2 bg-warning/10 border-t border-warning/20">
+        <div 
+          className="flex items-center justify-between px-4 py-2 bg-warning/10 border-t border-warning/20"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center gap-2 text-sm text-warning">
             <AlertTriangle className="h-4 w-4" />
             {alert}
