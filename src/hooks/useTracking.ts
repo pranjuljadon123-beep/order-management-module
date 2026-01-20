@@ -40,12 +40,25 @@ export interface Shipment {
   updatedAt: Date;
 }
 
+export type IncidentCategory = "weather" | "conflict" | "port-congestion" | "labor-strike" | "geopolitical" | "infrastructure" | "piracy" | "pandemic";
+export type IncidentSeverity = "critical" | "high" | "medium" | "low";
+
 export interface Incident {
   id: string;
   title: string;
+  description: string;
   date: string;
+  category: IncidentCategory;
+  severity: IncidentSeverity;
+  affectedRegions: string[]; // Country codes or region names
+  affectedPorts: string[];
+  affectedRoutes: string[]; // e.g., "Asia-Europe", "Trans-Pacific"
   impactedCount: number;
+  impactedShipmentIds: string[];
+  source: string;
+  sourceUrl?: string;
   isRead: boolean;
+  estimatedDelayDays?: number;
 }
 
 export type TimeFilter = "24h" | "7d" | "30d" | "3m" | "6m" | "1y";
@@ -200,27 +213,176 @@ const mockShipments: Shipment[] = [
   },
 ];
 
-const mockIncidents: Incident[] = [
+// Global news incidents that can affect shipments
+const mockGlobalIncidents: Incident[] = [
   {
-    id: "1",
-    title: "Severe Winter Storm Hits UK Shipping, Sends Containers Overboard",
-    date: "10 Jan 2026",
-    impactedCount: 86,
+    id: "inc-1",
+    title: "Red Sea Crisis: Houthi Attacks Force Ships to Reroute via Cape of Good Hope",
+    description: "Ongoing Houthi rebel attacks on commercial vessels in the Red Sea have forced major shipping lines to divert around Africa, adding 10-14 days to Asia-Europe routes. Insurance costs have surged 300%.",
+    date: "18 Jan 2026",
+    category: "conflict",
+    severity: "critical",
+    affectedRegions: ["YE", "SA", "EG", "DJ", "ER"],
+    affectedPorts: ["Jeddah", "Aden", "Djibouti", "Port Said", "Suez"],
+    affectedRoutes: ["Asia-Europe", "Asia-Mediterranean", "Indian Ocean"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "Reuters",
+    sourceUrl: "https://reuters.com",
     isRead: false,
+    estimatedDelayDays: 12,
   },
   {
-    id: "2",
-    title: "Port Congestion at Rotterdam Causing 3-5 Day Delays",
-    date: "08 Jan 2026",
-    impactedCount: 42,
+    id: "inc-2",
+    title: "Severe Winter Storm Hits Northern Europe, Port Operations Suspended",
+    description: "Storm Éowyn has caused widespread disruption across UK and Northern European ports. Hamburg and Rotterdam have suspended operations for 48 hours due to dangerous wind conditions.",
+    date: "17 Jan 2026",
+    category: "weather",
+    severity: "high",
+    affectedRegions: ["DE", "NL", "GB", "BE", "DK"],
+    affectedPorts: ["Rotterdam", "Hamburg", "Antwerp", "Felixstowe", "Southampton"],
+    affectedRoutes: ["Trans-Atlantic", "Asia-Europe"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "BBC News",
+    sourceUrl: "https://bbc.com",
     isRead: false,
+    estimatedDelayDays: 3,
+  },
+  {
+    id: "inc-3",
+    title: "Panama Canal Drought: Transit Slots Reduced by 40%",
+    description: "Unprecedented drought conditions have lowered water levels in Gatun Lake, forcing the Panama Canal Authority to reduce daily vessel transits from 36 to 22. Wait times have extended to 21 days.",
+    date: "15 Jan 2026",
+    category: "infrastructure",
+    severity: "critical",
+    affectedRegions: ["PA", "US", "CN", "JP", "KR"],
+    affectedPorts: ["Panama City", "Colon", "Los Angeles", "Long Beach", "New York"],
+    affectedRoutes: ["Trans-Pacific", "Asia-US East Coast"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "Wall Street Journal",
+    sourceUrl: "https://wsj.com",
+    isRead: false,
+    estimatedDelayDays: 7,
+  },
+  {
+    id: "inc-4",
+    title: "Dockworkers Strike at US West Coast Ports",
+    description: "ILWU union members have initiated work stoppages at major West Coast ports including Los Angeles, Long Beach, and Oakland. Negotiations over automation remain stalled.",
+    date: "14 Jan 2026",
+    category: "labor-strike",
+    severity: "high",
+    affectedRegions: ["US"],
+    affectedPorts: ["Los Angeles", "Long Beach", "Oakland", "Seattle", "Tacoma"],
+    affectedRoutes: ["Trans-Pacific", "Asia-Americas"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "Bloomberg",
+    sourceUrl: "https://bloomberg.com",
+    isRead: false,
+    estimatedDelayDays: 5,
+  },
+  {
+    id: "inc-5",
+    title: "China-Taiwan Tensions: Shipping Insurance Premiums Spike",
+    description: "Escalating military exercises near Taiwan have caused marine insurance premiums to increase by 150% for Taiwan Strait transits. Some carriers are considering alternative routes.",
+    date: "12 Jan 2026",
+    category: "geopolitical",
+    severity: "medium",
+    affectedRegions: ["CN", "TW", "JP", "KR"],
+    affectedPorts: ["Shanghai", "Ningbo", "Kaohsiung", "Taipei"],
+    affectedRoutes: ["Intra-Asia", "Trans-Pacific"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "Financial Times",
+    sourceUrl: "https://ft.com",
+    isRead: false,
+    estimatedDelayDays: 2,
+  },
+  {
+    id: "inc-6",
+    title: "Piracy Alert: Gulf of Guinea Attacks Increase",
+    description: "Maritime security reports indicate a 40% increase in piracy incidents off the West African coast. Armed guards are now recommended for vessels transiting the region.",
+    date: "10 Jan 2026",
+    category: "piracy",
+    severity: "medium",
+    affectedRegions: ["NG", "GH", "CI", "TG", "BJ"],
+    affectedPorts: ["Lagos", "Tema", "Abidjan", "Lome", "Cotonou"],
+    affectedRoutes: ["Europe-West Africa", "Americas-West Africa"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "IMB Piracy Reporting Centre",
+    sourceUrl: "https://icc-ccs.org",
+    isRead: false,
+    estimatedDelayDays: 1,
+  },
+  {
+    id: "inc-7",
+    title: "Singapore Port Congestion: Vessel Waiting Times at 7 Days",
+    description: "Record container volumes and yard congestion at Port of Singapore have pushed vessel waiting times to 7 days. The port is implementing emergency measures to clear backlogs.",
+    date: "08 Jan 2026",
+    category: "port-congestion",
+    severity: "high",
+    affectedRegions: ["SG", "MY", "ID"],
+    affectedPorts: ["Singapore", "Port Klang", "Tanjung Pelepas"],
+    affectedRoutes: ["Intra-Asia", "Asia-Europe", "Asia-Oceania"],
+    impactedCount: 0,
+    impactedShipmentIds: [],
+    source: "Lloyd's List",
+    sourceUrl: "https://lloydslist.com",
+    isRead: false,
+    estimatedDelayDays: 4,
   },
 ];
+
+// Helper to match incidents to shipments
+function matchIncidentsToShipments(incidents: Incident[], shipments: Shipment[]): Incident[] {
+  return incidents.map(incident => {
+    const impactedShipmentIds: string[] = [];
+    
+    shipments.forEach(shipment => {
+      // Check if shipment origin/destination matches affected regions
+      const originMatch = incident.affectedRegions.includes(shipment.origin.countryCode) ||
+        incident.affectedPorts.some(port => 
+          shipment.origin.port.toLowerCase().includes(port.toLowerCase())
+        );
+      
+      const destMatch = incident.affectedRegions.includes(shipment.destination.countryCode) ||
+        incident.affectedPorts.some(port => 
+          shipment.destination.port.toLowerCase().includes(port.toLowerCase())
+        );
+      
+      // Check route matches (simplified matching)
+      const routeMatch = incident.affectedRoutes.some(route => {
+        const routeLower = route.toLowerCase();
+        const originCountry = shipment.origin.country.toLowerCase();
+        const destCountry = shipment.destination.country.toLowerCase();
+        
+        if (routeLower.includes("asia") && (originCountry.includes("india") || originCountry.includes("china") || originCountry.includes("singapore") || originCountry.includes("korea"))) return true;
+        if (routeLower.includes("europe") && (destCountry.includes("germany") || destCountry.includes("netherlands") || originCountry.includes("netherlands"))) return true;
+        if (routeLower.includes("trans-pacific") && (destCountry.includes("usa") || destCountry.includes("us"))) return true;
+        if (routeLower.includes("trans-atlantic") && (destCountry.includes("usa") || destCountry.includes("us"))) return true;
+        
+        return false;
+      });
+      
+      if ((originMatch || destMatch || routeMatch) && shipment.status !== "completed") {
+        impactedShipmentIds.push(shipment.id);
+      }
+    });
+    
+    return {
+      ...incident,
+      impactedShipmentIds,
+      impactedCount: impactedShipmentIds.length,
+    };
+  }).filter(incident => incident.impactedCount > 0);
+}
 
 export function useTracking() {
   // State
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
-  const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("3m");
   const [shipmentFilter, setShipmentFilter] = useState<ShipmentFilter>("all");
@@ -232,6 +394,16 @@ export function useTracking() {
   const [isAddShipmentOpen, setIsAddShipmentOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [dismissedIncidentIds, setDismissedIncidentIds] = useState<string[]>([]);
+
+  // Compute incidents matched to current shipments
+  const incidents = useMemo(() => {
+    const matched = matchIncidentsToShipments(mockGlobalIncidents, shipments);
+    return matched.map(inc => ({
+      ...inc,
+      isRead: dismissedIncidentIds.includes(inc.id),
+    }));
+  }, [shipments, dismissedIncidentIds]);
 
   // Computed values
   const filteredShipments = useMemo(() => {
@@ -383,9 +555,7 @@ export function useTracking() {
   }, []);
 
   const markIncidentAsRead = useCallback((incidentId: string) => {
-    setIncidents((prev) =>
-      prev.map((i) => (i.id === incidentId ? { ...i, isRead: true } : i))
-    );
+    setDismissedIncidentIds((prev) => [...prev, incidentId]);
   }, []);
 
   const resetFilters = useCallback(() => {
