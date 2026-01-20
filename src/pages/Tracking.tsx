@@ -46,8 +46,13 @@ const Tracking = () => {
     setSelectedShipment,
   } = useTracking();
 
-  const handleViewImpacted = (incident: { id: string; impactedCount: number }) => {
-    setShipmentFilter("delayed");
+  const handleViewImpacted = (incident: { id: string; impactedCount: number; impactedShipmentIds?: string[] }) => {
+    // Filter to show only the impacted shipments
+    if (incident.impactedShipmentIds && incident.impactedShipmentIds.length > 0) {
+      setShipmentFilter("action-required");
+    } else {
+      setShipmentFilter("delayed");
+    }
     markIncidentAsRead(incident.id);
     toast.info(`Showing ${incident.impactedCount} impacted containers`);
   };
