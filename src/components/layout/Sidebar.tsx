@@ -6,7 +6,6 @@ import {
   Truck,
   FileText,
   DollarSign,
-  BarChart3,
   Globe,
   MessageSquare,
   Settings,
@@ -24,7 +23,6 @@ const navItems = [
   { icon: Package, label: "Tracking", path: "/tracking" },
   { icon: FileText, label: "Documents", path: "/documents" },
   { icon: DollarSign, label: "Invoices", path: "/invoices" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Globe, label: "Risk Monitor", path: "/risk" },
   { icon: MessageSquare, label: "Messages", path: "/messages" },
 ];
