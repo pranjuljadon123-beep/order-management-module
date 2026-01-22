@@ -6,12 +6,15 @@ import { ShipmentTable } from "@/components/dashboard/ShipmentTable";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
+import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
+import { ModularSavings } from "@/components/dashboard/ModularSavings";
+import { ModuleOverview } from "@/components/dashboard/ModuleOverview";
 
 const Index = () => {
   return (
     <AppLayout>
       {/* Page Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -25,8 +28,13 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Dashboard Filters */}
+      <div className="mb-6">
+        <DashboardFilters />
+      </div>
+
       {/* KPI Cards */}
-      <div className="mb-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard
           title="Active Shipments"
           value="258"
@@ -61,8 +69,18 @@ const Index = () => {
         />
       </div>
 
+      {/* Modular Savings */}
+      <div className="mb-6">
+        <ModularSavings />
+      </div>
+
+      {/* Module Overview */}
+      <div className="mb-6">
+        <ModuleOverview />
+      </div>
+
       {/* Map Section */}
-      <div className="mb-8">
+      <div className="mb-6">
         <ShipmentMap />
       </div>
 
