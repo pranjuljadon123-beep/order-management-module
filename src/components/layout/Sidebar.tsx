@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -36,8 +35,12 @@ const transportModes = [
   { icon: Truck, label: "Road", count: 89 },
 ];
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+}
+
+export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
 
   return (
     <aside
@@ -65,7 +68,7 @@ export function Sidebar() {
             </div>
           )}
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => onCollapsedChange(!collapsed)}
             className={cn(
               "flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground transition-colors hover:bg-sidebar-accent",
               collapsed && "absolute -right-3 top-6 bg-sidebar border border-sidebar-border"
