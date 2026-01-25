@@ -37,6 +37,7 @@ const App = () => (
           <Route path="/orders" element={<Orders />} />
           <Route path="/procurement" element={<Procurement />} />
           <Route path="/shipments" element={<Shipments />} />
+          <Route path="/tracking" element={<Tracking />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/risk" element={<PlaceholderPage title="Risk Monitor" description="Real-time disruption monitoring, weather alerts, and predictive risk analysis coming soon." />} />
