@@ -481,6 +481,358 @@ export type Database = {
         }
         Relationships: []
       }
+      document_comments: {
+        Row: {
+          content: string
+          created_at: string
+          document_id: string
+          id: string
+          is_resolved: boolean | null
+          parent_comment_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          updated_at: string
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_id: string
+          id?: string
+          is_resolved?: boolean | null
+          parent_comment_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          is_resolved?: boolean | null
+          parent_comment_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_comments_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "document_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_events: {
+        Row: {
+          created_at: string
+          document_id: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          processed: boolean | null
+          processed_at: string | null
+          triggered_by: string | null
+          triggered_by_system: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          triggered_by?: string | null
+          triggered_by_system?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          triggered_by?: string | null
+          triggered_by_system?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_templates: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          id: string
+          incoterms: string[] | null
+          is_active: boolean | null
+          is_default: boolean | null
+          template_data: Json
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          id?: string
+          incoterms?: string[] | null
+          is_active?: boolean | null
+          is_default?: boolean | null
+          template_data: Json
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_type?: Database["public"]["Enums"]["document_type"]
+          id?: string
+          incoterms?: string[] | null
+          is_active?: boolean | null
+          is_default?: boolean | null
+          template_data?: Json
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_validation_rules: {
+        Row: {
+          applies_to_countries: string[] | null
+          applies_to_incoterms: string[] | null
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          id: string
+          is_active: boolean | null
+          rule_config: Json
+          rule_name: string
+          rule_type: string
+          severity: string
+        }
+        Insert: {
+          applies_to_countries?: string[] | null
+          applies_to_incoterms?: string[] | null
+          created_at?: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          id?: string
+          is_active?: boolean | null
+          rule_config: Json
+          rule_name: string
+          rule_type: string
+          severity?: string
+        }
+        Update: {
+          applies_to_countries?: string[] | null
+          applies_to_incoterms?: string[] | null
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          id?: string
+          is_active?: boolean | null
+          rule_config?: Json
+          rule_name?: string
+          rule_type?: string
+          severity?: string
+        }
+        Relationships: []
+      }
+      document_versions: {
+        Row: {
+          change_reason: string | null
+          changed_by: string | null
+          changes_summary: string | null
+          content_data: Json
+          created_at: string
+          document_id: string
+          file_url: string | null
+          id: string
+          version: number
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by?: string | null
+          changes_summary?: string | null
+          content_data: Json
+          created_at?: string
+          document_id: string
+          file_url?: string | null
+          id?: string
+          version: number
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string | null
+          changes_summary?: string | null
+          content_data?: Json
+          created_at?: string
+          document_id?: string
+          file_url?: string | null
+          id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          content_data: Json | null
+          country_of_origin: string | null
+          created_at: string
+          created_by: string | null
+          destination_country: string | null
+          document_name: string
+          document_number: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          incoterms: string | null
+          is_latest: boolean | null
+          metadata: Json | null
+          notes: string | null
+          order_id: string | null
+          parent_document_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          risk_score: number | null
+          shipment_id: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          submitted_at: string | null
+          submitted_by: string | null
+          template_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+          validation_errors: Json | null
+          validation_status: string | null
+          validation_warnings: Json | null
+          version: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content_data?: Json | null
+          country_of_origin?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_country?: string | null
+          document_name: string
+          document_number: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          incoterms?: string | null
+          is_latest?: boolean | null
+          metadata?: Json | null
+          notes?: string | null
+          order_id?: string | null
+          parent_document_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_score?: number | null
+          shipment_id?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          template_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+          validation_status?: string | null
+          validation_warnings?: Json | null
+          version?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          content_data?: Json | null
+          country_of_origin?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_country?: string | null
+          document_name?: string
+          document_number?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          incoterms?: string | null
+          is_latest?: boolean | null
+          metadata?: Json | null
+          notes?: string | null
+          order_id?: string | null
+          parent_document_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          risk_score?: number | null
+          shipment_id?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          submitted_at?: string | null
+          submitted_by?: string | null
+          template_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          validation_errors?: Json | null
+          validation_status?: string | null
+          validation_warnings?: Json | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lane_rankings: {
         Row: {
           bid_id: string | null
@@ -1669,12 +2021,32 @@ export type Database = {
       }
       generate_award_number: { Args: never; Returns: string }
       generate_bid_number: { Args: never; Returns: string }
+      generate_document_number: { Args: never; Returns: string }
       generate_order_number: { Args: never; Returns: string }
       generate_quote_number: { Args: never; Returns: string }
       generate_rate_card_number: { Args: never; Returns: string }
       generate_rfq_number: { Args: never; Returns: string }
     }
     Enums: {
+      document_status:
+        | "draft"
+        | "pending_review"
+        | "reviewed"
+        | "approved"
+        | "submitted"
+        | "rejected"
+      document_type:
+        | "commercial_invoice"
+        | "packing_list"
+        | "bill_of_lading"
+        | "airway_bill"
+        | "shipping_instructions"
+        | "certificate_of_origin"
+        | "insurance_certificate"
+        | "proof_of_delivery"
+        | "customs_declaration"
+        | "inspection_certificate"
+        | "other"
       order_status:
         | "created"
         | "confirmed"
@@ -1813,6 +2185,27 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      document_status: [
+        "draft",
+        "pending_review",
+        "reviewed",
+        "approved",
+        "submitted",
+        "rejected",
+      ],
+      document_type: [
+        "commercial_invoice",
+        "packing_list",
+        "bill_of_lading",
+        "airway_bill",
+        "shipping_instructions",
+        "certificate_of_origin",
+        "insurance_certificate",
+        "proof_of_delivery",
+        "customs_declaration",
+        "inspection_certificate",
+        "other",
+      ],
       order_status: [
         "created",
         "confirmed",

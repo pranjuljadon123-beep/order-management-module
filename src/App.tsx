@@ -9,6 +9,7 @@ import Shipments from "./pages/Shipments";
 import Tracking from "./pages/Tracking";
 import Invoices from "./pages/Invoices";
 import Orders from "./pages/Orders";
+import Documents from "./pages/Documents";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -36,7 +37,7 @@ const App = () => (
           <Route path="/orders" element={<Orders />} />
           <Route path="/procurement" element={<Procurement />} />
           <Route path="/shipments" element={<Shipments />} />
-          <Route path="/documents" element={<PlaceholderPage title="Document Management" description="AI-powered document automation, OCR extraction, and compliance tracking coming soon." />} />
+          <Route path="/documents" element={<Documents />} />
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/risk" element={<PlaceholderPage title="Risk Monitor" description="Real-time disruption monitoring, weather alerts, and predictive risk analysis coming soon." />} />
           <Route path="/messages" element={<PlaceholderPage title="Messages" description="In-platform collaboration and communication tools coming soon." />} />
