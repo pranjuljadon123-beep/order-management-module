@@ -78,7 +78,7 @@ const createVesselIcon = (heading: number) => new L.DivIcon({
   iconAnchor: [16, 16],
 });
 
-// Component to fit bounds
+// Component to fit bounds - must be inside MapContainer
 function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
   const map = useMap();
   useEffect(() => {
@@ -87,18 +87,100 @@ function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
   return null;
 }
 
+// Inner map content component that renders all map layers
+interface MapContentProps {
+  originCoords: { lat: number; lng: number };
+  destCoords: { lat: number; lng: number };
+  currentPosition: { lat: number; lng: number };
+  traveledRoute: [number, number][];
+  remainingRoute: [number, number][];
+  bounds: L.LatLngBounds;
+  vesselIcon: L.DivIcon;
+  shipment: Shipment;
+  vesselHeading: number;
+}
+
+function MapContent({
+  originCoords,
+  destCoords,
+  currentPosition,
+  traveledRoute,
+  remainingRoute,
+  bounds,
+  vesselIcon,
+  shipment,
+  vesselHeading,
+}: MapContentProps) {
+  return (
+    <>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      
+      <FitBounds bounds={bounds} />
+
+      {/* Remaining route (dashed) */}
+      <Polyline
+        positions={remainingRoute}
+        pathOptions={{
+          color: "#94a3b8",
+          weight: 3,
+          dashArray: "10, 10",
+          opacity: 0.7,
+        }}
+      />
+
+      {/* Traveled route (solid) */}
+      <Polyline
+        positions={traveledRoute}
+        pathOptions={{
+          color: "#2563eb",
+          weight: 4,
+          opacity: 0.9,
+        }}
+      />
+
+      {/* Origin marker */}
+      <Marker position={[originCoords.lat, originCoords.lng]} icon={originIcon}>
+        <Popup>
+          <div className="text-sm">
+            <div className="font-semibold text-green-700">Origin</div>
+            <div>{shipment.origin.port}</div>
+            <div className="text-muted-foreground">{shipment.origin.country}</div>
+          </div>
+        </Popup>
+      </Marker>
+
+      {/* Destination marker */}
+      <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon}>
+        <Popup>
+          <div className="text-sm">
+            <div className="font-semibold text-red-700">Destination</div>
+            <div>{shipment.destination.port}</div>
+            <div className="text-muted-foreground">{shipment.destination.country}</div>
+          </div>
+        </Popup>
+      </Marker>
+
+      {/* Vessel marker */}
+      <Marker position={[currentPosition.lat, currentPosition.lng]} icon={vesselIcon}>
+        <Popup>
+          <div className="text-sm">
+            <div className="font-semibold text-blue-700">{shipment.carrier.name}</div>
+            <div>Container: {shipment.containerId}</div>
+            <div className="text-muted-foreground">Heading: {vesselHeading}°</div>
+            <div className="text-muted-foreground">Speed: 14.2 kn</div>
+          </div>
+        </Popup>
+      </Marker>
+    </>
+  );
+}
+
 export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: ShipmentMapViewProps) {
   const originCoords = useMemo(() => getPortCoordinates(shipment.origin.port), [shipment.origin.port]);
   const destCoords = useMemo(() => getPortCoordinates(shipment.destination.port), [shipment.destination.port]);
-
-  // Create route polyline points
-  const routePoints: [number, number][] = useMemo(() => {
-    return [
-      [originCoords.lat, originCoords.lng],
-      [currentPosition.lat, currentPosition.lng],
-      [destCoords.lat, destCoords.lng],
-    ];
-  }, [originCoords, currentPosition, destCoords]);
 
   const traveledRoute: [number, number][] = useMemo(() => {
     return [
@@ -135,67 +217,17 @@ export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: Sh
         zoomControl={true}
         scrollWheelZoom={true}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        <MapContent 
+          originCoords={originCoords}
+          destCoords={destCoords}
+          currentPosition={currentPosition}
+          traveledRoute={traveledRoute}
+          remainingRoute={remainingRoute}
+          bounds={bounds}
+          vesselIcon={vesselIcon}
+          shipment={shipment}
+          vesselHeading={vesselHeading}
         />
-        
-        <FitBounds bounds={bounds} />
-
-        {/* Remaining route (dashed) */}
-        <Polyline
-          positions={remainingRoute}
-          pathOptions={{
-            color: "#94a3b8",
-            weight: 3,
-            dashArray: "10, 10",
-            opacity: 0.7,
-          }}
-        />
-
-        {/* Traveled route (solid) */}
-        <Polyline
-          positions={traveledRoute}
-          pathOptions={{
-            color: "#2563eb",
-            weight: 4,
-            opacity: 0.9,
-          }}
-        />
-
-        {/* Origin marker */}
-        <Marker position={[originCoords.lat, originCoords.lng]} icon={originIcon}>
-          <Popup>
-            <div className="text-sm">
-              <div className="font-semibold text-green-700">Origin</div>
-              <div>{shipment.origin.port}</div>
-              <div className="text-muted-foreground">{shipment.origin.country}</div>
-            </div>
-          </Popup>
-        </Marker>
-
-        {/* Destination marker */}
-        <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon}>
-          <Popup>
-            <div className="text-sm">
-              <div className="font-semibold text-red-700">Destination</div>
-              <div>{shipment.destination.port}</div>
-              <div className="text-muted-foreground">{shipment.destination.country}</div>
-            </div>
-          </Popup>
-        </Marker>
-
-        {/* Vessel marker */}
-        <Marker position={[currentPosition.lat, currentPosition.lng]} icon={vesselIcon}>
-          <Popup>
-            <div className="text-sm">
-              <div className="font-semibold text-blue-700">{shipment.carrier.name}</div>
-              <div>Container: {shipment.containerId}</div>
-              <div className="text-muted-foreground">Heading: {vesselHeading}°</div>
-              <div className="text-muted-foreground">Speed: 14.2 kn</div>
-            </div>
-          </Popup>
-        </Marker>
       </MapContainer>
 
       {/* Vessel Info Card Overlay */}
