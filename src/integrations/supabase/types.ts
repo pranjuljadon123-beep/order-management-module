@@ -549,6 +549,410 @@ export type Database = {
           },
         ]
       }
+      order_documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          document_name: string
+          document_type: string
+          file_url: string | null
+          id: string
+          metadata: Json | null
+          order_id: string
+          status: string | null
+          updated_at: string
+          uploaded_by: string | null
+          version: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          document_name: string
+          document_type: string
+          file_url?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id: string
+          status?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          version?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          document_name?: string
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string
+          status?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_documents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          order_id: string
+          processed: boolean | null
+          processed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          order_id: string
+          processed?: boolean | null
+          processed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          order_id?: string
+          processed?: boolean | null
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_shipments: {
+        Row: {
+          allocated_quantity: number | null
+          allocated_volume: number | null
+          allocated_weight: number | null
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          notes: string | null
+          order_id: string
+          shipment_id: string
+          shipment_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          allocated_quantity?: number | null
+          allocated_volume?: number | null
+          allocated_weight?: number | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          notes?: string | null
+          order_id: string
+          shipment_id: string
+          shipment_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allocated_quantity?: number | null
+          allocated_volume?: number | null
+          allocated_weight?: number | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          notes?: string | null
+          order_id?: string
+          shipment_id?: string
+          shipment_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_state_transitions: {
+        Row: {
+          created_at: string
+          from_status: Database["public"]["Enums"]["order_status"] | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          order_id: string
+          to_status: Database["public"]["Enums"]["order_status"]
+          triggered_by: string | null
+          triggered_by_system: string | null
+        }
+        Insert: {
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["order_status"] | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          order_id: string
+          to_status: Database["public"]["Enums"]["order_status"]
+          triggered_by?: string | null
+          triggered_by_system?: string | null
+        }
+        Update: {
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["order_status"] | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          order_id?: string
+          to_status?: Database["public"]["Enums"]["order_status"]
+          triggered_by?: string | null
+          triggered_by_system?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_state_transitions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_versions: {
+        Row: {
+          change_reason: string | null
+          changed_by: string | null
+          changes: Json
+          created_at: string
+          id: string
+          new_state: Json
+          order_id: string
+          previous_state: Json
+          version: number
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_by?: string | null
+          changes: Json
+          created_at?: string
+          id?: string
+          new_state: Json
+          order_id: string
+          previous_state: Json
+          version: number
+        }
+        Update: {
+          change_reason?: string | null
+          changed_by?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          new_state?: Json
+          order_id?: string
+          previous_state?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_versions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          actual_delivery_date: string | null
+          actual_pickup_date: string | null
+          ai_recommendations: Json | null
+          commodity_description: string | null
+          confirmed_delivery_date: string | null
+          confirmed_pickup_date: string | null
+          consignee_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          customer_reference: string | null
+          destination_address: string | null
+          destination_city: string | null
+          destination_country: string | null
+          destination_port_code: string | null
+          hs_code: string | null
+          id: string
+          incoterms: string | null
+          internal_reference: string | null
+          metadata: Json | null
+          mode: string | null
+          notes: string | null
+          order_number: string
+          order_type: Database["public"]["Enums"]["order_type"]
+          origin_address: string | null
+          origin_city: string | null
+          origin_country: string | null
+          origin_port_code: string | null
+          po_number: string | null
+          quantity: number | null
+          quantity_unit: string | null
+          requested_delivery_date: string | null
+          requested_pickup_date: string | null
+          risk_factors: Json | null
+          risk_level: Database["public"]["Enums"]["risk_level"] | null
+          risk_score: number | null
+          service_level: string | null
+          shipper_id: string | null
+          sku_code: string | null
+          so_number: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+          version: number | null
+          volume_unit: string | null
+          volume_value: number | null
+          weight_unit: string | null
+          weight_value: number | null
+        }
+        Insert: {
+          actual_delivery_date?: string | null
+          actual_pickup_date?: string | null
+          ai_recommendations?: Json | null
+          commodity_description?: string | null
+          confirmed_delivery_date?: string | null
+          confirmed_pickup_date?: string | null
+          consignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_reference?: string | null
+          destination_address?: string | null
+          destination_city?: string | null
+          destination_country?: string | null
+          destination_port_code?: string | null
+          hs_code?: string | null
+          id?: string
+          incoterms?: string | null
+          internal_reference?: string | null
+          metadata?: Json | null
+          mode?: string | null
+          notes?: string | null
+          order_number: string
+          order_type?: Database["public"]["Enums"]["order_type"]
+          origin_address?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          origin_port_code?: string | null
+          po_number?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          requested_delivery_date?: string | null
+          requested_pickup_date?: string | null
+          risk_factors?: Json | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          risk_score?: number | null
+          service_level?: string | null
+          shipper_id?: string | null
+          sku_code?: string | null
+          so_number?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          version?: number | null
+          volume_unit?: string | null
+          volume_value?: number | null
+          weight_unit?: string | null
+          weight_value?: number | null
+        }
+        Update: {
+          actual_delivery_date?: string | null
+          actual_pickup_date?: string | null
+          ai_recommendations?: Json | null
+          commodity_description?: string | null
+          confirmed_delivery_date?: string | null
+          confirmed_pickup_date?: string | null
+          consignee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          customer_reference?: string | null
+          destination_address?: string | null
+          destination_city?: string | null
+          destination_country?: string | null
+          destination_port_code?: string | null
+          hs_code?: string | null
+          id?: string
+          incoterms?: string | null
+          internal_reference?: string | null
+          metadata?: Json | null
+          mode?: string | null
+          notes?: string | null
+          order_number?: string
+          order_type?: Database["public"]["Enums"]["order_type"]
+          origin_address?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          origin_port_code?: string | null
+          po_number?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          requested_delivery_date?: string | null
+          requested_pickup_date?: string | null
+          risk_factors?: Json | null
+          risk_level?: Database["public"]["Enums"]["risk_level"] | null
+          risk_score?: number | null
+          service_level?: string | null
+          shipper_id?: string | null
+          sku_code?: string | null
+          so_number?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          version?: number | null
+          volume_unit?: string | null
+          volume_value?: number | null
+          weight_unit?: string | null
+          weight_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_consignee_id_fkey"
+            columns: ["consignee_id"]
+            isOneToOne: false
+            referencedRelation: "consignees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_shipper_id_fkey"
+            columns: ["shipper_id"]
+            isOneToOne: false
+            referencedRelation: "shippers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       procurement_events: {
         Row: {
           created_at: string
@@ -1265,12 +1669,23 @@ export type Database = {
       }
       generate_award_number: { Args: never; Returns: string }
       generate_bid_number: { Args: never; Returns: string }
+      generate_order_number: { Args: never; Returns: string }
       generate_quote_number: { Args: never; Returns: string }
       generate_rate_card_number: { Args: never; Returns: string }
       generate_rfq_number: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      order_status:
+        | "created"
+        | "confirmed"
+        | "ready_to_ship"
+        | "booked"
+        | "in_transit"
+        | "delivered"
+        | "closed"
+        | "cancelled"
+      order_type: "purchase_order" | "sales_order" | "transport_order"
+      risk_level: "low" | "medium" | "high" | "critical"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1397,6 +1812,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      order_status: [
+        "created",
+        "confirmed",
+        "ready_to_ship",
+        "booked",
+        "in_transit",
+        "delivered",
+        "closed",
+        "cancelled",
+      ],
+      order_type: ["purchase_order", "sales_order", "transport_order"],
+      risk_level: ["low", "medium", "high", "critical"],
+    },
   },
 } as const
