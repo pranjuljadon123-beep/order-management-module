@@ -18,6 +18,7 @@ import {
 
 const navItems = [
   { icon: LayoutDashboard, label: "Control Tower", path: "/" },
+  { icon: Package, label: "Orders", path: "/orders" },
   { icon: ShoppingCart, label: "Procurement", path: "/procurement" },
   { icon: Truck, label: "Shipments", path: "/shipments" },
   { icon: Package, label: "Tracking", path: "/tracking" },
