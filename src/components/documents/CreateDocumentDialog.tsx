@@ -77,7 +77,7 @@ export function CreateDocumentDialog({ open, onOpenChange }: CreateDocumentDialo
     try {
       await createDocument.mutateAsync({
         ...data,
-        order_id: data.order_id || undefined,
+        order_id: data.order_id === 'none' ? undefined : data.order_id,
       });
       toast({ title: 'Document created', description: 'Your document has been generated successfully' });
       form.reset();
@@ -156,8 +156,8 @@ export function CreateDocumentDialog({ open, onOpenChange }: CreateDocumentDialo
                         <SelectValue placeholder="Select order (optional)" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">No linked order</SelectItem>
+                    <SelectContent className="bg-popover">
+                      <SelectItem value="none">No linked order</SelectItem>
                       {orders?.map((order) => (
                         <SelectItem key={order.id} value={order.id}>
                           {order.order_number} - {order.commodity_description || 'No description'}
