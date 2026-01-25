@@ -1,14 +1,8 @@
-import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  Locate, 
-  Maximize2,
-  Ship,
-  Anchor
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useMemo, useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { Ship } from "lucide-react";
 import type { Shipment } from "@/hooks/useTracking";
 
 interface ShipmentMapViewProps {
@@ -48,193 +42,171 @@ function getPortCoordinates(portName: string): { lat: number; lng: number } {
   return { lat: 0, lng: 0 };
 }
 
+// Custom icon for origin
+const originIcon = new L.DivIcon({
+  className: "custom-marker",
+  html: `<div style="background-color: hsl(142, 76%, 36%); width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+// Custom icon for destination
+const destIcon = new L.DivIcon({
+  className: "custom-marker",
+  html: `<div style="background-color: hsl(0, 72%, 51%); width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+});
+
+// Custom icon for vessel
+const createVesselIcon = (heading: number) => new L.DivIcon({
+  className: "vessel-marker",
+  html: `
+    <div style="transform: rotate(${heading}deg); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+      <div style="background-color: hsl(210, 79%, 46%); padding: 6px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 12px rgba(0,0,0,0.4);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+          <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+          <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+          <path d="M12 10v4"/>
+          <path d="M12 2v3"/>
+        </svg>
+      </div>
+    </div>
+  `,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+});
+
+// Component to fit bounds
+function FitBounds({ bounds }: { bounds: L.LatLngBoundsExpression }) {
+  const map = useMap();
+  useEffect(() => {
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }, [map, bounds]);
+  return null;
+}
+
 export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: ShipmentMapViewProps) {
   const originCoords = useMemo(() => getPortCoordinates(shipment.origin.port), [shipment.origin.port]);
   const destCoords = useMemo(() => getPortCoordinates(shipment.destination.port), [shipment.destination.port]);
 
-  // Calculate SVG viewBox to fit the route
-  const viewBox = useMemo(() => {
-    const minLat = Math.min(originCoords.lat, destCoords.lat, currentPosition.lat) - 10;
-    const maxLat = Math.max(originCoords.lat, destCoords.lat, currentPosition.lat) + 10;
-    const minLng = Math.min(originCoords.lng, destCoords.lng, currentPosition.lng) - 15;
-    const maxLng = Math.max(originCoords.lng, destCoords.lng, currentPosition.lng) + 15;
-    
-    return {
-      x: minLng,
-      y: -maxLat,
-      width: maxLng - minLng,
-      height: maxLat - minLat
-    };
-  }, [originCoords, destCoords, currentPosition]);
+  // Create route polyline points
+  const routePoints: [number, number][] = useMemo(() => {
+    return [
+      [originCoords.lat, originCoords.lng],
+      [currentPosition.lat, currentPosition.lng],
+      [destCoords.lat, destCoords.lng],
+    ];
+  }, [originCoords, currentPosition, destCoords]);
 
-  // Convert lat/lng to SVG coordinates
-  const toSvg = (lat: number, lng: number) => ({ x: lng, y: -lat });
+  const traveledRoute: [number, number][] = useMemo(() => {
+    return [
+      [originCoords.lat, originCoords.lng],
+      [currentPosition.lat, currentPosition.lng],
+    ];
+  }, [originCoords, currentPosition]);
 
-  const origin = toSvg(originCoords.lat, originCoords.lng);
-  const dest = toSvg(destCoords.lat, destCoords.lng);
-  const current = toSvg(currentPosition.lat, currentPosition.lng);
+  const remainingRoute: [number, number][] = useMemo(() => {
+    return [
+      [currentPosition.lat, currentPosition.lng],
+      [destCoords.lat, destCoords.lng],
+    ];
+  }, [currentPosition, destCoords]);
 
-  // Create curved path through current position
-  const midX = (origin.x + dest.x) / 2;
-  const midY = (origin.y + dest.y) / 2;
-  const curveOffset = Math.abs(origin.x - dest.x) * 0.15;
+  // Calculate bounds
+  const bounds = useMemo(() => {
+    return L.latLngBounds([
+      [originCoords.lat, originCoords.lng],
+      [currentPosition.lat, currentPosition.lng],
+      [destCoords.lat, destCoords.lng],
+    ]);
+  }, [originCoords, currentPosition, destCoords]);
+
+  const vesselIcon = useMemo(() => createVesselIcon(vesselHeading), [vesselHeading]);
 
   return (
-    <div className="relative h-full w-full bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 dark:from-slate-900 dark:via-blue-950 dark:to-slate-900 overflow-hidden">
-      {/* Map SVG */}
-      <svg 
-        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        className="w-full h-full"
-        preserveAspectRatio="xMidYMid meet"
+    <div className="relative h-full w-full overflow-hidden rounded-lg">
+      <MapContainer
+        center={[currentPosition.lat, currentPosition.lng]}
+        zoom={4}
+        className="h-full w-full"
+        style={{ height: "100%", width: "100%" }}
+        zoomControl={true}
+        scrollWheelZoom={true}
       >
-        {/* Grid pattern for ocean */}
-        <defs>
-          <pattern id="oceanGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="hsl(210, 40%, 80%)" strokeWidth="0.1" className="dark:stroke-blue-900/50" />
-          </pattern>
-          <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="hsl(142, 76%, 36%)" />
-            <stop offset="100%" stopColor="hsl(210, 79%, 46%)" />
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        
+        <FitBounds bounds={bounds} />
 
-        {/* Ocean background */}
-        <rect 
-          x={viewBox.x - 50} 
-          y={viewBox.y - 50} 
-          width={viewBox.width + 100} 
-          height={viewBox.height + 100} 
-          fill="url(#oceanGrid)" 
+        {/* Remaining route (dashed) */}
+        <Polyline
+          positions={remainingRoute}
+          pathOptions={{
+            color: "#94a3b8",
+            weight: 3,
+            dashArray: "10, 10",
+            opacity: 0.7,
+          }}
         />
 
-        {/* Expected route (dashed) */}
-        <path
-          d={`M ${origin.x} ${origin.y} Q ${midX} ${midY - curveOffset} ${dest.x} ${dest.y}`}
-          stroke="hsl(210, 30%, 60%)"
-          strokeWidth="0.8"
-          strokeDasharray="3,2"
-          fill="none"
-          className="dark:stroke-blue-400/40"
+        {/* Traveled route (solid) */}
+        <Polyline
+          positions={traveledRoute}
+          pathOptions={{
+            color: "#2563eb",
+            weight: 4,
+            opacity: 0.9,
+          }}
         />
 
-        {/* Actual route traveled (solid gradient) */}
-        <path
-          d={`M ${origin.x} ${origin.y} Q ${(origin.x + current.x) / 2} ${(origin.y + current.y) / 2 - curveOffset * 0.5} ${current.x} ${current.y}`}
-          stroke="url(#routeGradient)"
-          strokeWidth="1.2"
-          fill="none"
-          filter="url(#glow)"
-        />
+        {/* Origin marker */}
+        <Marker position={[originCoords.lat, originCoords.lng]} icon={originIcon}>
+          <Popup>
+            <div className="text-sm">
+              <div className="font-semibold text-green-700">Origin</div>
+              <div>{shipment.origin.port}</div>
+              <div className="text-muted-foreground">{shipment.origin.country}</div>
+            </div>
+          </Popup>
+        </Marker>
 
-        {/* Origin port marker */}
-        <g transform={`translate(${origin.x}, ${origin.y})`}>
-          <circle r="3" fill="hsl(142, 76%, 36%)" />
-          <circle r="5" fill="none" stroke="hsl(142, 76%, 36%)" strokeWidth="0.5" opacity="0.5" />
-          <text x="7" y="1" fontSize="4" fill="hsl(142, 76%, 26%)" fontWeight="600" className="dark:fill-green-400">
-            Origin
-          </text>
-          <text x="7" y="5" fontSize="2.5" fill="hsl(210, 20%, 50%)" className="dark:fill-slate-400">
-            {shipment.origin.port.split(",")[0]}
-          </text>
-        </g>
+        {/* Destination marker */}
+        <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon}>
+          <Popup>
+            <div className="text-sm">
+              <div className="font-semibold text-red-700">Destination</div>
+              <div>{shipment.destination.port}</div>
+              <div className="text-muted-foreground">{shipment.destination.country}</div>
+            </div>
+          </Popup>
+        </Marker>
 
-        {/* Destination port marker */}
-        <g transform={`translate(${dest.x}, ${dest.y})`}>
-          <circle r="3" fill="hsl(0, 72%, 51%)" />
-          <circle r="5" fill="none" stroke="hsl(0, 72%, 51%)" strokeWidth="0.5" opacity="0.5" />
-          <text x="7" y="1" fontSize="4" fill="hsl(0, 72%, 41%)" fontWeight="600" className="dark:fill-red-400">
-            Dest.
-          </text>
-          <text x="7" y="5" fontSize="2.5" fill="hsl(210, 20%, 50%)" className="dark:fill-slate-400">
-            {shipment.destination.port.split(",")[0]}
-          </text>
-        </g>
+        {/* Vessel marker */}
+        <Marker position={[currentPosition.lat, currentPosition.lng]} icon={vesselIcon}>
+          <Popup>
+            <div className="text-sm">
+              <div className="font-semibold text-blue-700">{shipment.carrier.name}</div>
+              <div>Container: {shipment.containerId}</div>
+              <div className="text-muted-foreground">Heading: {vesselHeading}°</div>
+              <div className="text-muted-foreground">Speed: 14.2 kn</div>
+            </div>
+          </Popup>
+        </Marker>
+      </MapContainer>
 
-        {/* Current vessel position */}
-        <g transform={`translate(${current.x}, ${current.y}) rotate(${vesselHeading})`}>
-          {/* Vessel glow */}
-          <circle r="4" fill="hsl(210, 79%, 46%)" opacity="0.3" className="animate-ping" />
-          {/* Vessel icon */}
-          <polygon 
-            points="0,-3 2,3 -2,3" 
-            fill="hsl(210, 79%, 46%)"
-            className="dark:fill-blue-400"
-          />
-          <circle r="1.5" fill="white" />
-        </g>
-
-        {/* Vessel label */}
-        <g transform={`translate(${current.x + 5}, ${current.y})`}>
-          <rect x="-1" y="-4" width="25" height="8" rx="1" fill="hsl(210, 79%, 46%)" opacity="0.9" />
-          <text x="0" y="0" fontSize="3" fill="white" fontWeight="600">
-            {shipment.carrier.code}
-          </text>
-          <text x="0" y="3" fontSize="2" fill="white" opacity="0.8">
-            In Transit
-          </text>
-        </g>
-      </svg>
-
-      {/* Map Controls */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
-        <Button variant="secondary" size="icon" className="h-9 w-9 bg-background/95 backdrop-blur-sm shadow-lg">
-          <Maximize2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="absolute bottom-20 right-4 flex flex-col gap-1">
-        <Button variant="secondary" size="icon" className="h-9 w-9 bg-background/95 backdrop-blur-sm shadow-lg rounded-b-none">
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button variant="secondary" size="icon" className="h-9 w-9 bg-background/95 backdrop-blur-sm shadow-lg rounded-t-none border-t-0">
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <div className="absolute bottom-4 right-4">
-        <Button variant="secondary" size="icon" className="h-9 w-9 bg-background/95 backdrop-blur-sm shadow-lg">
-          <Locate className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border">
-        <div className="space-y-2 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-0.5 bg-gradient-to-r from-green-600 to-primary" />
-            <span className="text-muted-foreground">Actual Path</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-5 border-t-2 border-dashed border-muted-foreground/50" />
-            <span className="text-muted-foreground">Expected Path</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-600" />
-            <span className="text-muted-foreground">Origin Port</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-destructive" />
-            <span className="text-muted-foreground">Destination Port</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Vessel Info Card */}
-      <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-border max-w-xs">
+      {/* Vessel Info Card Overlay */}
+      <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-border max-w-xs z-[1000]">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
             <Ship className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="font-semibold text-sm text-foreground">{shipment.carrier.name}</h4>
-            <p className="text-xs text-muted-foreground mt-0.5">Vessel ID: {shipment.containerId}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Container: {shipment.containerId}</p>
             <div className="flex items-center gap-4 mt-2 text-xs">
               <div>
                 <span className="text-muted-foreground">Speed:</span>
@@ -250,10 +222,32 @@ export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: Sh
       </div>
 
       {/* AIS Data Badge */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-border flex items-center gap-2">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-border flex items-center gap-2 z-[1000]">
         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
         <span className="text-xs font-medium text-foreground">Live AIS Data</span>
         <span className="text-xs text-muted-foreground">• Updated 2 min ago</span>
+      </div>
+
+      {/* Map Legend */}
+      <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border z-[1000]">
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-1 bg-blue-600 rounded" />
+            <span className="text-muted-foreground">Traveled Route</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 border-t-2 border-dashed border-slate-400" />
+            <span className="text-muted-foreground">Remaining Route</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-green-600" />
+            <span className="text-muted-foreground">Origin Port</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-600" />
+            <span className="text-muted-foreground">Destination Port</span>
+          </div>
+        </div>
       </div>
     </div>
   );

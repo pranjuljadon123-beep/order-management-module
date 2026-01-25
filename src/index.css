@@ -4,6 +4,25 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
 
+/* Leaflet map styles */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 1;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 12px;
+}
+
+.custom-marker, .vessel-marker {
+  background: transparent;
+  border: none;
+}
+
 @layer base {
   :root {
     /* Ocean Teal Theme - Soft & Elegant */
