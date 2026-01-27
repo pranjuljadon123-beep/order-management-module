@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth, useSignIn, useSignUp } from '@/hooks/useAuth';
+import { useAuth, useSignIn, useSignUp, useProfile } from '@/hooks/useAuth';
 import { useCarriers } from '@/hooks/useProcurement';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,12 +30,18 @@ const Auth = () => {
   const [signUpRole, setSignUpRole] = useState<'buyer' | 'vendor'>(defaultRole);
   const [signUpCarrier, setSignUpCarrier] = useState('');
 
+  const { data: profile } = useProfile();
+
   useEffect(() => {
-    if (user && !authLoading) {
-      // Redirect based on profile role (will be checked in profile query)
-      navigate('/');
+    if (user && !authLoading && profile) {
+      // Redirect based on profile role
+      if (profile.role === 'vendor') {
+        navigate('/vendor');
+      } else {
+        navigate('/');
+      }
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, profile, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
