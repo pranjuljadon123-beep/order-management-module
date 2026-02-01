@@ -16,6 +16,19 @@ import Auth from "./pages/Auth";
 import VendorPortal from "./pages/VendorPortal";
 import VendorRfqDetail from "./pages/VendorRfqDetail";
 
+// Website Pages
+import WebsiteHome from "./pages/website/WebsiteHome";
+import PlatformOverview from "./pages/website/PlatformOverview";
+import SolutionDetail from "./pages/website/SolutionDetail";
+import HowItWorks from "./pages/website/HowItWorks";
+import DemoRequest from "./pages/website/DemoRequest";
+import BlogListing from "./pages/website/BlogListing";
+import BlogPost from "./pages/website/BlogPost";
+import About from "./pages/website/About";
+import Careers from "./pages/website/Careers";
+import Contact from "./pages/website/Contact";
+import Resources from "./pages/website/Resources";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -25,6 +38,19 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Marketing Website */}
+          <Route path="/website" element={<WebsiteHome />} />
+          <Route path="/website/platform" element={<PlatformOverview />} />
+          <Route path="/website/solutions/:slug" element={<SolutionDetail />} />
+          <Route path="/website/how-it-works" element={<HowItWorks />} />
+          <Route path="/website/demo" element={<DemoRequest />} />
+          <Route path="/website/blog" element={<BlogListing />} />
+          <Route path="/website/blog/:slug" element={<BlogPost />} />
+          <Route path="/website/about" element={<About />} />
+          <Route path="/website/careers" element={<Careers />} />
+          <Route path="/website/contact" element={<Contact />} />
+          <Route path="/website/resources" element={<Resources />} />
+
           {/* Auth */}
           <Route path="/auth" element={<Auth />} />
           
