@@ -1,8 +1,7 @@
-import { useMemo, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { useMemo, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Ship, MapPin } from "lucide-react";
+import { Ship } from "lucide-react";
 import type { Shipment } from "@/hooks/useTracking";
 
 interface ShipmentMapViewProps {
@@ -11,50 +10,55 @@ interface ShipmentMapViewProps {
   vesselHeading: number;
 }
 
-// Custom icon creator using SVG
-function createSvgIcon(color: string, type: "origin" | "destination" | "vessel") {
-  const size = type === "vessel" ? 40 : 32;
-  const svgMap: Record<string, string> = {
-    origin: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
-    destination: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
-    vessel: `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 10v4"/><path d="M12 2v3"/></svg>`,
+function getPortCoords(portName: string): { lat: number; lng: number } {
+  const portCoords: Record<string, { lat: number; lng: number }> = {
+    "jakarta": { lat: -6.1, lng: 106.8 },
+    "surabaya": { lat: -7.25, lng: 112.75 },
+    "singapore": { lat: 1.29, lng: 103.85 },
+    "rotterdam": { lat: 51.9, lng: 4.5 },
+    "shanghai": { lat: 31.2, lng: 121.5 },
+    "hamburg": { lat: 53.55, lng: 9.99 },
+    "antwerp": { lat: 51.26, lng: 4.4 },
+    "dubai": { lat: 25.27, lng: 55.29 },
+    "mumbai": { lat: 19.08, lng: 72.88 },
+    "nhava sheva": { lat: 18.95, lng: 72.95 },
+    "jnpt": { lat: 18.95, lng: 72.95 },
+    "new york": { lat: 40.68, lng: -74.04 },
+    "los angeles": { lat: 33.74, lng: -118.27 },
+    "chicago": { lat: 41.88, lng: -87.63 },
+    "ennore": { lat: 13.22, lng: 80.32 },
+    "busan": { lat: 35.1, lng: 129.03 },
+    "mombasa": { lat: -4.04, lng: 39.67 },
+    "kampala": { lat: 0.35, lng: 32.58 },
   };
+  const lowerPortName = portName.toLowerCase();
+  for (const [key, coords] of Object.entries(portCoords)) {
+    if (lowerPortName.includes(key)) return coords;
+  }
+  return { lat: 0, lng: 0 };
+}
 
-  const bgColor = type === "origin" ? "#22c55e" : type === "destination" ? "#ef4444" : color;
-  
+function createIcon(color: string, size: number, svg: string) {
   return L.divIcon({
-    className: "custom-map-marker",
+    className: "",
     html: `<div style="
-      background: ${bgColor};
-      width: ${size}px;
-      height: ${size}px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 3px solid white;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-      ${type === 'vessel' ? 'animation: pulse-ring 2s ease-out infinite;' : ''}
-    ">${svgMap[type]}</div>`,
+      background:${color};width:${size}px;height:${size}px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      border:3px solid white;box-shadow:0 4px 14px rgba(0,0,0,0.4);
+    ">${svg}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
   });
 }
 
-// Component to fit map bounds
-function FitBounds({ positions }: { positions: [number, number][] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (positions.length >= 2) {
-      const bounds = L.latLngBounds(positions.map(p => L.latLng(p[0], p[1])));
-      map.fitBounds(bounds, { padding: [80, 80], maxZoom: 6 });
-    }
-  }, [map, positions]);
-  return null;
-}
+const pinSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+const shipSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 10v4"/><path d="M12 2v3"/></svg>`;
 
 export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: ShipmentMapViewProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
   const originCoords = useMemo(() => getPortCoords(shipment.origin.port), [shipment.origin.port]);
   const destCoords = useMemo(() => getPortCoords(shipment.destination.port), [shipment.destination.port]);
 
@@ -73,95 +77,77 @@ export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: Sh
     return Math.min(progress, 100);
   }, [shipment.progress]);
 
-  const originIcon = useMemo(() => createSvgIcon("#22c55e", "origin"), []);
-  const destIcon = useMemo(() => createSvgIcon("#ef4444", "destination"), []);
-  const vesselIcon = useMemo(() => createSvgIcon(shipment.status === "delayed" ? "#ef4444" : "#3b82f6", "vessel"), [shipment.status]);
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
 
-  // Route line: origin → current → destination
-  const completedRoute: [number, number][] = [
-    [originCoords.lat, originCoords.lng],
-    [currentPosition.lat, currentPosition.lng],
-  ];
-  const remainingRoute: [number, number][] = [
-    [currentPosition.lat, currentPosition.lng],
-    [destCoords.lat, destCoords.lng],
-  ];
+    const map = L.map(mapRef.current, {
+      center: [currentPosition.lat, currentPosition.lng],
+      zoom: 4,
+      zoomControl: false,
+      attributionControl: false,
+    });
 
-  const allPositions: [number, number][] = [
-    [originCoords.lat, originCoords.lng],
-    [currentPosition.lat, currentPosition.lng],
-    [destCoords.lat, destCoords.lng],
-  ];
+    // Satellite imagery
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { attribution: "Tiles © Esri" }
+    ).addTo(map);
 
-  const center: [number, number] = [currentPosition.lat, currentPosition.lng];
+    // Labels overlay
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+    ).addTo(map);
+
+    // Completed route
+    L.polyline(
+      [[originCoords.lat, originCoords.lng], [currentPosition.lat, currentPosition.lng]],
+      { color: "#3b82f6", weight: 3, opacity: 0.9 }
+    ).addTo(map);
+
+    // Remaining route (dashed)
+    L.polyline(
+      [[currentPosition.lat, currentPosition.lng], [destCoords.lat, destCoords.lng]],
+      { color: "#94a3b8", weight: 2, opacity: 0.7, dashArray: "10, 8" }
+    ).addTo(map);
+
+    // Origin marker
+    L.marker([originCoords.lat, originCoords.lng], { icon: createIcon("#22c55e", 32, pinSvg) })
+      .bindPopup(`<b>${shipment.origin.port.split(",")[0]}</b><br/>${shipment.origin.country} — Origin`)
+      .addTo(map);
+
+    // Destination marker
+    L.marker([destCoords.lat, destCoords.lng], { icon: createIcon("#ef4444", 32, pinSvg) })
+      .bindPopup(`<b>${shipment.destination.port.split(",")[0]}</b><br/>${shipment.destination.country} — Destination`)
+      .addTo(map);
+
+    // Vessel marker
+    const vesselColor = shipment.status === "delayed" ? "#ef4444" : "#3b82f6";
+    L.marker([currentPosition.lat, currentPosition.lng], { icon: createIcon(vesselColor, 40, shipSvg) })
+      .bindPopup(`<b>${shipment.carrier.name}</b><br/>Container: ${shipment.containerId}<br/>Heading: ${vesselHeading}°`)
+      .addTo(map);
+
+    // Fit bounds
+    const bounds = L.latLngBounds([
+      [originCoords.lat, originCoords.lng],
+      [currentPosition.lat, currentPosition.lng],
+      [destCoords.lat, destCoords.lng],
+    ]);
+    map.fitBounds(bounds, { padding: [60, 60], maxZoom: 6 });
+
+    // Zoom control bottom-right
+    L.control.zoom({ position: "bottomleft" }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []);
 
   return (
     <div className="relative h-full w-full">
-      <style>{`
-        .custom-map-marker { background: transparent !important; border: none !important; }
-        @keyframes pulse-ring {
-          0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.5); }
-          70% { box-shadow: 0 0 0 15px rgba(59,130,246,0); }
-          100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
-        }
-      `}</style>
-      
-      <MapContainer
-        center={center}
-        zoom={4}
-        className="h-full w-full z-0"
-        zoomControl={false}
-        attributionControl={false}
-      >
-        {/* Satellite-style dark tile layer */}
-        <TileLayer
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          attribution="Tiles &copy; Esri"
-        />
-        {/* Labels overlay */}
-        <TileLayer
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-          attribution=""
-        />
-
-        <FitBounds positions={allPositions} />
-
-        {/* Completed route */}
-        <Polyline
-          positions={completedRoute}
-          pathOptions={{ color: "#3b82f6", weight: 3, opacity: 0.9 }}
-        />
-        {/* Remaining route (dashed) */}
-        <Polyline
-          positions={remainingRoute}
-          pathOptions={{ color: "#94a3b8", weight: 2, opacity: 0.7, dashArray: "10, 8" }}
-        />
-
-        {/* Origin */}
-        <Marker position={[originCoords.lat, originCoords.lng]} icon={originIcon}>
-          <Popup>
-            <div className="text-sm font-medium">{shipment.origin.port.split(",")[0]}</div>
-            <div className="text-xs text-gray-500">{shipment.origin.country} — Origin</div>
-          </Popup>
-        </Marker>
-
-        {/* Destination */}
-        <Marker position={[destCoords.lat, destCoords.lng]} icon={destIcon}>
-          <Popup>
-            <div className="text-sm font-medium">{shipment.destination.port.split(",")[0]}</div>
-            <div className="text-xs text-gray-500">{shipment.destination.country} — Destination</div>
-          </Popup>
-        </Marker>
-
-        {/* Vessel */}
-        <Marker position={[currentPosition.lat, currentPosition.lng]} icon={vesselIcon}>
-          <Popup>
-            <div className="text-sm font-semibold">{shipment.carrier.name}</div>
-            <div className="text-xs text-gray-500">Container: {shipment.containerId}</div>
-            <div className="text-xs text-gray-500">Heading: {vesselHeading}°</div>
-          </Popup>
-        </Marker>
-      </MapContainer>
+      <div ref={mapRef} className="h-full w-full z-0" />
 
       {/* Vessel Info Overlay */}
       <div className="absolute top-4 left-4 bg-background/95 backdrop-blur-sm rounded-lg p-4 shadow-lg border border-border max-w-xs z-[1000]">
@@ -210,32 +196,4 @@ export function ShipmentMapView({ shipment, currentPosition, vesselHeading }: Sh
       </div>
     </div>
   );
-}
-
-function getPortCoords(portName: string): { lat: number; lng: number } {
-  const portCoords: Record<string, { lat: number; lng: number }> = {
-    "jakarta": { lat: -6.1, lng: 106.8 },
-    "surabaya": { lat: -7.25, lng: 112.75 },
-    "singapore": { lat: 1.29, lng: 103.85 },
-    "rotterdam": { lat: 51.9, lng: 4.5 },
-    "shanghai": { lat: 31.2, lng: 121.5 },
-    "hamburg": { lat: 53.55, lng: 9.99 },
-    "antwerp": { lat: 51.26, lng: 4.4 },
-    "dubai": { lat: 25.27, lng: 55.29 },
-    "mumbai": { lat: 19.08, lng: 72.88 },
-    "nhava sheva": { lat: 18.95, lng: 72.95 },
-    "jnpt": { lat: 18.95, lng: 72.95 },
-    "new york": { lat: 40.68, lng: -74.04 },
-    "los angeles": { lat: 33.74, lng: -118.27 },
-    "chicago": { lat: 41.88, lng: -87.63 },
-    "ennore": { lat: 13.22, lng: 80.32 },
-    "busan": { lat: 35.1, lng: 129.03 },
-    "mombasa": { lat: -4.04, lng: 39.67 },
-    "kampala": { lat: 0.35, lng: 32.58 },
-  };
-  const lowerPortName = portName.toLowerCase();
-  for (const [key, coords] of Object.entries(portCoords)) {
-    if (lowerPortName.includes(key)) return coords;
-  }
-  return { lat: 0, lng: 0 };
 }
