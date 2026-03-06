@@ -85,7 +85,7 @@ const MOCK_WORKFLOWS: ShipmentWorkflow[] = [
   { id: "8", shipmentNumber: "SHP-2026-008", title: "Food Grade Oils", customerName: "Cargill", originCity: "Jakarta", originCountry: "Indonesia", destinationCity: "Amsterdam", destinationCountry: "Netherlands", mode: "ocean", carrierName: "Evergreen", currentStage: "customs", priority: "normal", createdAt: hoursAgo(150), stages: [] },
   { id: "9", shipmentNumber: "SHP-2026-009", title: "Automotive Parts", customerName: "Toyota Motor", originCity: "Nagoya", originCountry: "Japan", destinationCity: "Long Beach", destinationCountry: "United States", mode: "ocean", carrierName: "NYK Line", currentStage: "booking", priority: "low", createdAt: hoursAgo(4), stages: [] },
   { id: "10", shipmentNumber: "SHP-2026-010", title: "Chemical Shipment", customerName: "BASF SE", originCity: "Hamburg", originCountry: "Germany", destinationCity: "Shanghai", destinationCountry: "China", mode: "ocean", carrierName: "Hapag-Lloyd", currentStage: "in_transit", priority: "urgent", createdAt: hoursAgo(350), stages: [] },
-].map(w => ({ ...w, stages: buildStages(w.currentStage) }));
+].map(w => ({ ...w, stages: buildStages(w.currentStage as WorkflowStage) })) as ShipmentWorkflow[];
 
 export function getTimeInStage(enteredAt: string | null): { hours: number; label: string } {
   if (!enteredAt) return { hours: 0, label: "—" };
