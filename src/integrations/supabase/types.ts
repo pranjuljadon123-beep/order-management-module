@@ -1896,6 +1896,60 @@ export type Database = {
           },
         ]
       }
+      shipment_workflows: {
+        Row: {
+          carrier_name: string | null
+          created_at: string
+          created_by: string | null
+          current_stage: Database["public"]["Enums"]["workflow_stage"]
+          customer_name: string | null
+          destination_city: string | null
+          destination_country: string | null
+          id: string
+          mode: string | null
+          origin_city: string | null
+          origin_country: string | null
+          priority: string | null
+          shipment_number: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          carrier_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_stage?: Database["public"]["Enums"]["workflow_stage"]
+          customer_name?: string | null
+          destination_city?: string | null
+          destination_country?: string | null
+          id?: string
+          mode?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          priority?: string | null
+          shipment_number: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          carrier_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_stage?: Database["public"]["Enums"]["workflow_stage"]
+          customer_name?: string | null
+          destination_city?: string | null
+          destination_country?: string | null
+          id?: string
+          mode?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          priority?: string | null
+          shipment_number?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shippers: {
         Row: {
           address_line1: string | null
@@ -2001,6 +2055,94 @@ export type Database = {
           },
         ]
       }
+      workflow_activity_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: string | null
+          id: string
+          performed_by: string | null
+          stage: Database["public"]["Enums"]["workflow_stage"]
+          workflow_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          performed_by?: string | null
+          stage: Database["public"]["Enums"]["workflow_stage"]
+          workflow_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          performed_by?: string | null
+          stage?: Database["public"]["Enums"]["workflow_stage"]
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_activity_log_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_stage_assignments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          entered_at: string | null
+          id: string
+          is_current: boolean | null
+          notes: string | null
+          owner_name: string | null
+          owner_role: Database["public"]["Enums"]["workflow_owner_role"]
+          sla_hours: number | null
+          stage: Database["public"]["Enums"]["workflow_stage"]
+          workflow_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          entered_at?: string | null
+          id?: string
+          is_current?: boolean | null
+          notes?: string | null
+          owner_name?: string | null
+          owner_role?: Database["public"]["Enums"]["workflow_owner_role"]
+          sla_hours?: number | null
+          stage: Database["public"]["Enums"]["workflow_stage"]
+          workflow_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          entered_at?: string | null
+          id?: string
+          is_current?: boolean | null
+          notes?: string | null
+          owner_name?: string | null
+          owner_role?: Database["public"]["Enums"]["workflow_owner_role"]
+          sla_hours?: number | null
+          stage?: Database["public"]["Enums"]["workflow_stage"]
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_stage_assignments_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -2058,6 +2200,17 @@ export type Database = {
         | "cancelled"
       order_type: "purchase_order" | "sales_order" | "transport_order"
       risk_level: "low" | "medium" | "high" | "critical"
+      workflow_owner_role:
+        | "operations"
+        | "documentation_compliance"
+        | "unassigned"
+      workflow_stage:
+        | "booking"
+        | "documentation"
+        | "customs"
+        | "loading"
+        | "in_transit"
+        | "delivery"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2218,6 +2371,19 @@ export const Constants = {
       ],
       order_type: ["purchase_order", "sales_order", "transport_order"],
       risk_level: ["low", "medium", "high", "critical"],
+      workflow_owner_role: [
+        "operations",
+        "documentation_compliance",
+        "unassigned",
+      ],
+      workflow_stage: [
+        "booking",
+        "documentation",
+        "customs",
+        "loading",
+        "in_transit",
+        "delivery",
+      ],
     },
   },
 } as const
