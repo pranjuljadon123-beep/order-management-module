@@ -61,8 +61,8 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
             </div>
           )}
           {collapsed && (
-            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-              <Ship className="h-5 w-5 text-accent-foreground" />
+            <div className="mx-auto">
+              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
             </div>
           )}
           <button

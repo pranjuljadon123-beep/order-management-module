@@ -43,10 +43,8 @@ export function WebsiteHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         {/* Logo */}
         <Link to="/website" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-teal to-ocean">
-            <span className="text-lg font-bold text-white">O</span>
-          </div>
-          <span className="text-xl font-bold text-foreground">OpsFlow</span>
+          <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
+          <span className="text-xl font-bold text-foreground">Foraxis</span>
         </Link>
 
         {/* Desktop Navigation */}
