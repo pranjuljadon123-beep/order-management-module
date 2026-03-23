@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Youtube } from "lucide-react";
+import foraxisLogo from "@/assets/foraxis-logo.png";
 
 const footerLinks = {
   platform: [
