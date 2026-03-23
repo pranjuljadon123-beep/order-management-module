@@ -15,6 +15,7 @@ import {
   Plane,
   ShoppingCart,
 } from "lucide-react";
+import foraxisLogo from "@/assets/foraxis-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Control Tower", path: "/" },
