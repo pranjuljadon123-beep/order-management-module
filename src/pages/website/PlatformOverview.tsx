@@ -99,7 +99,7 @@ export default function PlatformOverview() {
               </span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground">
-              OpsFlow is the execution backbone for enterprise operations. We connect orders, documents, 
+              Foraxis is the execution backbone for enterprise operations. We connect orders, documents, 
               procurement, tracking, and invoicing into a unified system of record — with AI intelligence 
               layered on top.
             </p>
@@ -235,7 +235,7 @@ export default function PlatformOverview() {
                 Everything You Need to Run Operations at Scale
               </h2>
               <p className="mb-8 text-lg text-muted-foreground">
-                OpsFlow provides the complete toolkit for enterprise operations teams. 
+                Foraxis provides the complete toolkit for enterprise operations teams. 
                 From execution to intelligence, every capability is built-in and connected.
               </p>
               <Button size="lg" asChild className="bg-gradient-to-r from-teal to-ocean hover:opacity-90">
@@ -268,7 +268,7 @@ export default function PlatformOverview() {
               Ready to See the Platform in Action?
             </h2>
             <p className="mb-8 text-lg text-white/80">
-              Schedule a personalized demo with our team and see how OpsFlow can 
+              Schedule a personalized demo with our team and see how Foraxis can 
               transform your operations.
             </p>
             <Button size="lg" variant="secondary" asChild>

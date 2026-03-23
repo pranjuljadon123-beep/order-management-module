@@ -75,7 +75,7 @@ const Auth = () => {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
               <Ship className="h-6 w-6 text-accent" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">FreightFlow</h1>
+            <h1 className="text-3xl font-bold text-foreground">Foraxis</h1>
           </div>
           <p className="text-muted-foreground">Freight Procurement Platform</p>
         </div>

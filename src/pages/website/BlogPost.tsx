@@ -184,7 +184,7 @@ export default function BlogPost() {
               Ready to Transform Your Operations?
             </h2>
             <p className="mb-6 text-muted-foreground">
-              See how OpsFlow can put these insights into action for your enterprise.
+              See how Foraxis can put these insights into action for your enterprise.
             </p>
             <Button size="lg" asChild className="bg-gradient-to-r from-teal to-ocean hover:opacity-90">
               <Link to="/website/demo">

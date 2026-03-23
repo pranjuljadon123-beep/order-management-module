@@ -56,7 +56,7 @@ export default function About() {
               </span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground">
-              OpsFlow was founded on a simple belief: enterprises deserve better than dashboards and 
+              Foraxis was founded on a simple belief: enterprises deserve better than dashboards and 
               spreadsheets. They deserve systems that actually execute.
             </p>
           </div>

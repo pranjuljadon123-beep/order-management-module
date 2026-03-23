@@ -50,7 +50,7 @@ export default function Contact() {
               </span>
             </h1>
             <p className="text-lg text-muted-foreground">
-              Have questions about OpsFlow? Our team is here to help.
+              Have questions about Foraxis? Our team is here to help.
             </p>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function Contact() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="mb-4 text-2xl font-bold text-foreground">
-              Ready to see OpsFlow in action?
+              Ready to see Foraxis in action?
             </h2>
             <p className="mb-6 text-muted-foreground">
               Skip the form and schedule a demo directly with our solutions team.

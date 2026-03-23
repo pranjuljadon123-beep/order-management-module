@@ -57,14 +57,14 @@ export default function DemoRequest() {
             {/* Left Column - Info */}
             <div>
               <h1 className="mb-6 text-4xl font-bold tracking-tight text-foreground lg:text-5xl">
-                See OpsFlow{" "}
+                See Foraxis{" "}
                 <span className="bg-gradient-to-r from-teal to-ocean bg-clip-text text-transparent">
                   in Action
                 </span>
               </h1>
               <p className="mb-8 text-lg text-muted-foreground">
                 Get a personalized demo of the platform. Our solutions team will show 
-                you how OpsFlow can transform your operations.
+                you how Foraxis can transform your operations.
               </p>
 
               {/* What You Get */}
