@@ -11,6 +11,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import foraxisLogo from "@/assets/foraxis-logo.png";
 
 const platformLinks = [
   { title: "Platform Overview", href: "/website/platform", description: "See how all modules work together" },
