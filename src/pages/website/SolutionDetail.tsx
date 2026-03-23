@@ -37,7 +37,7 @@ const solutionsData: Record<string, SolutionData> = {
     icon: <Package className="h-8 w-8" />,
     title: "Order Management",
     subtitle: "The Execution Spine of Your Operations",
-    description: "Create, track, and manage orders across your entire operational workflow. OpsFlow Order Management serves as the central system of record, connecting all downstream processes.",
+    description: "Create, track, and manage orders across your entire operational workflow. Foraxis Order Management serves as the central system of record, connecting all downstream processes.",
     problem: "Enterprises struggle with fragmented order data across multiple systems, leading to execution delays, lack of visibility, and compliance gaps. Without a unified order management system, teams waste hours reconciling data and chasing updates.",
     benefits: [
       "Single source of truth for all order data",
@@ -55,7 +55,7 @@ const solutionsData: Record<string, SolutionData> = {
     ],
     faqs: [
       { question: "How does Order Management connect to other modules?", answer: "Orders serve as the execution spine. When you create an order, it automatically creates links to relevant documents, triggers procurement workflows, and establishes tracking requirements. All downstream data flows back to the order record." },
-      { question: "Can we import existing orders from our ERP?", answer: "Yes, OpsFlow supports bulk import from major ERP systems including SAP, Oracle, and Microsoft Dynamics. We also provide REST APIs and webhooks for real-time integration." },
+      { question: "Can we import existing orders from our ERP?", answer: "Yes, Foraxis supports bulk import from major ERP systems including SAP, Oracle, and Microsoft Dynamics. We also provide REST APIs and webhooks for real-time integration." },
       { question: "How are audit trails maintained?", answer: "Every change to an order is logged with timestamp, user, and before/after values. You can view the complete history of any order and export audit reports for compliance purposes." },
     ],
   },
@@ -81,7 +81,7 @@ const solutionsData: Record<string, SolutionData> = {
       { title: "Compliance Validation", description: "Built-in rules validate documents against regulatory requirements and flag issues before submission." },
     ],
     faqs: [
-      { question: "What document types can be auto-generated?", answer: "OpsFlow supports all common trade documents including commercial invoices, packing lists, certificates of origin, bills of lading, and customs declarations. You can also create custom templates for your specific needs." },
+      { question: "What document types can be auto-generated?", answer: "Foraxis supports all common trade documents including commercial invoices, packing lists, certificates of origin, bills of lading, and customs declarations. You can also create custom templates for your specific needs." },
       { question: "How does compliance validation work?", answer: "Our AI-powered validation engine checks documents against regulatory requirements based on origin/destination countries, product types, and trade agreements. It flags missing fields, inconsistencies, and potential compliance issues." },
       { question: "Can we integrate with e-signature providers?", answer: "Yes, we integrate with DocuSign, Adobe Sign, and other major e-signature providers. You can also use our built-in digital signature capability." },
     ],

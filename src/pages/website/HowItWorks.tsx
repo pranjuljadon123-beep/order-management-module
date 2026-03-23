@@ -58,13 +58,13 @@ export default function HowItWorks() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="mb-6 text-4xl font-bold tracking-tight text-foreground lg:text-5xl">
-              How OpsFlow{" "}
+              How Foraxis{" "}
               <span className="bg-gradient-to-r from-teal to-ocean bg-clip-text text-transparent">
                 Works
               </span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground">
-              From order creation to payment reconciliation, see how OpsFlow connects 
+              From order creation to payment reconciliation, see how Foraxis connects 
               every step of your operational workflow into a unified, intelligent system.
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function HowItWorks() {
               Connects to Your Existing Systems
             </h2>
             <p className="text-lg text-muted-foreground">
-              OpsFlow integrates with your ERP, WMS, TMS, and carrier systems. 
+              Foraxis integrates with your ERP, WMS, TMS, and carrier systems. 
               Pre-built connectors and REST APIs make integration fast.
             </p>
           </div>
@@ -184,10 +184,10 @@ export default function HowItWorks() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-3xl font-bold text-white lg:text-4xl">
-              Ready to See OpsFlow in Action?
+              Ready to See Foraxis in Action?
             </h2>
             <p className="mb-8 text-lg text-white/80">
-              Schedule a demo and see how OpsFlow can transform your operations.
+              Schedule a demo and see how Foraxis can transform your operations.
             </p>
             <Button size="lg" variant="secondary" asChild>
               <Link to="/website/demo">

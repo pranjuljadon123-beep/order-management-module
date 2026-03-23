@@ -15,6 +15,7 @@ import {
   Plane,
   ShoppingCart,
 } from "lucide-react";
+import foraxisLogo from "@/assets/foraxis-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Control Tower", path: "/" },
@@ -53,17 +54,15 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-                <Ship className="h-5 w-5 text-accent-foreground" />
-              </div>
+              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
               <span className="text-lg font-bold text-sidebar-accent-foreground">
-                FreightFlow
+                Foraxis
               </span>
             </div>
           )}
           {collapsed && (
-            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-              <Ship className="h-5 w-5 text-accent-foreground" />
+            <div className="mx-auto">
+              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
             </div>
           )}
           <button

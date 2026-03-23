@@ -188,7 +188,7 @@ export default function WebsiteHome() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="mx-auto mb-16 max-w-2xl text-center">
             <h2 className="mb-4 text-3xl font-bold text-foreground lg:text-4xl">
-              Why Enterprise Leaders Choose OpsFlow
+              Why Enterprise Leaders Choose Foraxis
             </h2>
             <p className="text-lg text-muted-foreground">
               Built for scale, trust, and long-term adoption by global operations teams.
@@ -254,7 +254,7 @@ export default function WebsiteHome() {
                 Measurable Impact, Real Results
               </h2>
               <p className="text-lg text-white/80">
-                Enterprise teams using OpsFlow see transformative improvements across their operations.
+                Enterprise teams using Foraxis see transformative improvements across their operations.
               </p>
             </div>
 
@@ -297,7 +297,7 @@ export default function WebsiteHome() {
               Ready to Transform Your Operations?
             </h2>
             <p className="mb-8 text-lg text-muted-foreground">
-              See how OpsFlow can become the execution backbone of your enterprise. 
+              See how Foraxis can become the execution backbone of your enterprise. 
               Request a personalized demo with our team.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">

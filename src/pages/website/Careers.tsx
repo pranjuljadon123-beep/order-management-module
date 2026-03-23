@@ -48,11 +48,11 @@ export default function Careers() {
         </div>
       </section>
 
-      {/* Why OpsFlow */}
+      {/* Why Foraxis */}
       <section className="py-16 lg:py-20">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="mb-4 text-3xl font-bold text-foreground">Why OpsFlow?</h2>
+            <h2 className="mb-4 text-3xl font-bold text-foreground">Why Foraxis?</h2>
             <p className="text-muted-foreground">
               We're solving hard problems at the intersection of operations, AI, and enterprise software.
             </p>

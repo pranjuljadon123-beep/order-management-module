@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Youtube } from "lucide-react";
+import foraxisLogo from "@/assets/foraxis-logo.png";
 
 const footerLinks = {
   platform: [
@@ -39,10 +40,8 @@ export function WebsiteFooter() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <Link to="/website" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-teal to-ocean">
-                <span className="text-lg font-bold text-white">O</span>
-              </div>
-              <span className="text-xl font-bold text-foreground">OpsFlow</span>
+              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
+              <span className="text-xl font-bold text-foreground">Foraxis</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               The execution backbone for enterprise operations, with intelligence layered on top.
@@ -132,7 +131,7 @@ export function WebsiteFooter() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/40 pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} OpsFlow. All rights reserved.
+            © {new Date().getFullYear()} Foraxis. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
