@@ -3,7 +3,6 @@ import { Sparkles, Send, Loader2, ExternalLink, ArrowRight, X, Wand2 } from "luc
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -181,7 +180,7 @@ export function AiAssistant() {
             </SheetDescription>
           </SheetHeader>
 
-          <ScrollArea className="flex-1 px-5 py-4" ref={scrollRef as any}>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4">
             {messages.length === 0 && (
               <div className="space-y-4">
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
@@ -247,7 +246,7 @@ export function AiAssistant() {
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
 
           <div className="border-t border-border p-3 bg-background">
             <div className="relative">
