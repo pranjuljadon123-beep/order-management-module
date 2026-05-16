@@ -32,11 +32,11 @@ type AiMessage = {
 
 const SUGGESTED_QUESTIONS = [
   "Which shipments are delayed and why?",
-  "Approve all invoices from DSV Demo Distributor",
+  "Track BL MAEU7728193 on Maersk",
+  "Create an RFQ for Shanghai → Hamburg, ocean FCL, 40HC, deadline next Friday",
   "Advance SHP-2026-003 to the next stage",
-  "Reassign current stage of SHP-2026-007 to Priya Sharma",
   "Filter tracking to show only delayed shipments",
-  "Reject invoice 5 — amount exceeds expected",
+  "Approve all invoices from DSV Demo Distributor",
   "Give me a daily operations briefing",
   "Which workflow stages have SLA breaches and who owns them?",
 ];
