@@ -258,20 +258,40 @@ export function AiAssistant() {
                           className="text-sm leading-relaxed prose-sm"
                           dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }}
                         />
+                        {m.executed && m.executed.length > 0 && (
+                          <div className="rounded-md border border-border bg-muted/30 p-2 space-y-1">
+                            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Actions executed</p>
+                            {m.executed.map((r, k) => (
+                              <div key={k} className="flex items-start gap-2 text-xs">
+                                {r.ok
+                                  ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                                  : <AlertCircle className="h-3.5 w-3.5 text-destructive flex-shrink-0 mt-0.5" />}
+                                <span className={r.ok ? "text-foreground" : "text-destructive"}>
+                                  {r.label}{!r.ok && r.error ? ` — ${r.error}` : ""}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {m.actions && m.actions.length > 0 && (
                           <div className="flex flex-wrap gap-2 pt-1">
-                            {m.actions.map((a, j) => (
-                              <Button
-                                key={j}
-                                size="sm"
-                                variant={a.variant ?? "outline"}
-                                onClick={() => runAction(a)}
-                                className="gap-1.5 h-8"
-                              >
-                                {a.type === "external" ? <ExternalLink className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5" />}
-                                {a.label}
-                              </Button>
-                            ))}
+                            {m.actions.map((a, j) => {
+                              const isExec = a.type === "execute";
+                              const Icon = a.type === "external" ? ExternalLink : isExec ? Play : ArrowRight;
+                              const label = isExec && a.variant !== "destructive" ? `Re-run: ${a.label}` : a.label;
+                              return (
+                                <Button
+                                  key={j}
+                                  size="sm"
+                                  variant={a.variant ?? (isExec ? "secondary" : "outline")}
+                                  onClick={() => runAction(a)}
+                                  className="gap-1.5 h-8"
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                  {label}
+                                </Button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
