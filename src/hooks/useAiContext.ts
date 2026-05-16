@@ -8,7 +8,7 @@ import { useEffect } from "react";
 export type AiActionHandlers = Record<string, (...args: any[]) => any>;
 
 export function useAiContext(
-  key: "tracking" | "workflow" | "invoices",
+  key: "tracking" | "workflow" | "invoices" | "global" | "procurement",
   value: unknown,
   actions?: AiActionHandlers,
 ) {

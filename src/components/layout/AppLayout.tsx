@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
 import { AiAssistant } from "@/components/ai/AiAssistant";
+import { AiGlobalBridge } from "@/components/ai/AiGlobalBridge";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="p-6">{children}</main>
       </div>
       <AiAssistant />
+      <AiGlobalBridge />
     </div>
   );
 }
