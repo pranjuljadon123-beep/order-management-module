@@ -11,6 +11,8 @@ import { useTracking } from "@/hooks/useTracking";
 import { useAiContext } from "@/hooks/useAiContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const Tracking = () => {
   const {
@@ -59,7 +61,31 @@ const Tracking = () => {
       if (s) setSelectedShipment(s);
     },
     resetFilters: () => resetFilters(),
+    addShipmentByBl: (bl: string, carrier?: string) => {
+      const id = String(bl || "").trim().toUpperCase();
+      const car = String(carrier || "mscu").toLowerCase();
+      if (!id) return;
+      addShipment(id, car);
+      toast.success(`Now tracking ${id}`);
+    },
   });
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const handledRef = useRef(false);
+  useEffect(() => {
+    if (handledRef.current) return;
+    const bl = searchParams.get("addBl");
+    const carrier = searchParams.get("carrier") || "mscu";
+    if (bl) {
+      handledRef.current = true;
+      addShipment(bl.toUpperCase(), carrier.toLowerCase());
+      toast.success(`Now tracking ${bl.toUpperCase()}`);
+      const next = new URLSearchParams(searchParams);
+      next.delete("addBl");
+      next.delete("carrier");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, addShipment, setSearchParams]);
 
   const handleViewImpacted = (incident: { id: string; impactedCount: number; impactedShipmentIds?: string[] }) => {
     // Filter to show only the impacted shipments
