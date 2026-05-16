@@ -5,6 +5,7 @@ import { InvoiceList } from "@/components/invoices/InvoiceList";
 import { InvoiceDetailView } from "@/components/invoices/InvoiceDetailView";
 import { UploadInvoiceDialog } from "@/components/invoices/UploadInvoiceDialog";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useAiContext } from "@/hooks/useAiContext";
 import { toast } from "sonner";
 
 const Invoices = () => {
@@ -27,6 +28,8 @@ const Invoices = () => {
     rejectInvoice,
     deleteInvoices,
   } = useInvoices();
+
+  useAiContext("invoices", invoices);
 
   // If an invoice is selected, show detail view
   if (selectedInvoice) {

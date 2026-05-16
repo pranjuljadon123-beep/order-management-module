@@ -5,6 +5,7 @@ import { WorkflowKanban } from "@/components/shipments/WorkflowKanban";
 import { WorkflowTable } from "@/components/shipments/WorkflowTable";
 import { BottleneckBar } from "@/components/shipments/BottleneckBar";
 import { useShipmentWorkflow } from "@/hooks/useShipmentWorkflow";
+import { useAiContext } from "@/hooks/useAiContext";
 
 const Shipments = () => {
   const {
@@ -17,6 +18,8 @@ const Shipments = () => {
     stats,
     bottlenecks,
   } = useShipmentWorkflow();
+
+  useAiContext("workflow", { shipments: workflows, stats, bottlenecks });
 
   return (
     <AppLayout>
