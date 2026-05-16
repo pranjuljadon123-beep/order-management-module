@@ -29,7 +29,18 @@ const Invoices = () => {
     deleteInvoices,
   } = useInvoices();
 
-  useAiContext("invoices", invoices);
+  useAiContext("invoices", invoices, {
+    approve: (id: string) => approveInvoice(id),
+    reject: (id: string) => rejectInvoice(id),
+    star: (id: string) => toggleStar(id),
+    delete: (ids: string[]) => deleteInvoices(Array.isArray(ids) ? ids : [ids]),
+    setFilter: (f: string) => setFilter(f as any),
+    setSearch: (q: string) => setSearchQuery(q),
+    open: (id: string) => {
+      const inv = invoices.find((i) => i.id === id);
+      if (inv) setSelectedInvoice(inv);
+    },
+  });
 
   // If an invoice is selected, show detail view
   if (selectedInvoice) {

@@ -14,12 +14,24 @@ const Shipments = () => {
     stageFilter, setStageFilter,
     priorityFilter, setPriorityFilter,
     workflows,
+    allWorkflows,
     stageGroups,
     stats,
     bottlenecks,
+    advanceShipmentStage,
+    reassignStageOwner,
+    setShipmentPriority,
   } = useShipmentWorkflow();
 
-  useAiContext("workflow", { shipments: workflows, stats, bottlenecks });
+  useAiContext("workflow", { shipments: allWorkflows ?? workflows, stats, bottlenecks }, {
+    advance: (id: string) => advanceShipmentStage(id),
+    reassign: (id: string, owner: string) => reassignStageOwner(id, owner),
+    setPriority: (id: string, priority: string) => setShipmentPriority(id, priority as any),
+    setStageFilter: (s: string) => setStageFilter(s as any),
+    setPriorityFilter: (p: string) => setPriorityFilter(p),
+    setSearch: (q: string) => setSearchQuery(q),
+    setView: (v: string) => setViewMode(v as any),
+  });
 
   return (
     <AppLayout>

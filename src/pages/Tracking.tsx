@@ -47,7 +47,19 @@ const Tracking = () => {
     setSelectedShipment,
   } = useTracking();
 
-  useAiContext("tracking", { shipments, incidents, stats });
+  useAiContext("tracking", { shipments, incidents, stats }, {
+    markAlertRead: (id: string) => markAlertAsRead(id),
+    markIncidentRead: (id: string) => markIncidentAsRead(id),
+    setFilter: (f: string) => setShipmentFilter(f as any),
+    setTimeFilter: (t: string) => setTimeFilter(t as any),
+    setSearch: (q: string) => setSearchQuery(q),
+    toggleDelayed: () => setShowDelayed(!showDelayed),
+    openShipment: (id: string) => {
+      const s = shipments.find((x: any) => x.id === id || x.containerId === id);
+      if (s) setSelectedShipment(s);
+    },
+    resetFilters: () => resetFilters(),
+  });
 
   const handleViewImpacted = (incident: { id: string; impactedCount: number; impactedShipmentIds?: string[] }) => {
     // Filter to show only the impacted shipments
