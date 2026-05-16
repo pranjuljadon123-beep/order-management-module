@@ -8,6 +8,7 @@ import { AddShipmentDialog } from "@/components/tracking/AddShipmentDialog";
 import { BulkUploadDialog } from "@/components/tracking/BulkUploadDialog";
 import { ShipmentDetailView } from "@/components/tracking/ShipmentDetailView";
 import { useTracking } from "@/hooks/useTracking";
+import { useAiContext } from "@/hooks/useAiContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +46,8 @@ const Tracking = () => {
     selectedShipment,
     setSelectedShipment,
   } = useTracking();
+
+  useAiContext("tracking", { shipments, incidents, stats });
 
   const handleViewImpacted = (incident: { id: string; impactedCount: number; impactedShipmentIds?: string[] }) => {
     // Filter to show only the impacted shipments

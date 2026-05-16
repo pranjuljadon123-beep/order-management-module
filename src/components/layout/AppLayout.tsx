@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { cn } from "@/lib/utils";
+import { AiAssistant } from "@/components/ai/AiAssistant";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <Header />
         <main className="p-6">{children}</main>
       </div>
+      <AiAssistant />
     </div>
   );
 }
