@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Loader2, ExternalLink, ArrowRight, X, Wand2 } from "lucide-react";
+import { Sparkles, Send, Loader2, ExternalLink, ArrowRight, X, Wand2, CheckCircle2, AlertCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,31 +10,51 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type AiAction = {
-  type: "navigate" | "filter" | "external" | "info";
+  type: "navigate" | "filter" | "external" | "info" | "execute";
   label: string;
   path?: string;
   url?: string;
   filterKey?: string;
   value?: string;
+  verb?: string;
+  args?: any[];
   variant?: "default" | "secondary" | "destructive" | "outline";
 };
+
+type ExecResult = { ok: boolean; label: string; error?: string };
 
 type AiMessage = {
   role: "user" | "assistant";
   content: string;
   actions?: AiAction[];
+  executed?: ExecResult[];
 };
 
 const SUGGESTED_QUESTIONS = [
   "Which shipments are delayed and why?",
-  "Show me invoices with the highest amount variance",
-  "Which workflow stages have SLA breaches right now?",
-  "Summarise open RFQs and pending vendor quotes",
-  "Who are my top 3 carriers by shipment volume?",
-  "What documents are still pending validation?",
+  "Approve all invoices from DSV Demo Distributor",
+  "Advance SHP-2026-003 to the next stage",
+  "Reassign current stage of SHP-2026-007 to Priya Sharma",
+  "Filter tracking to show only delayed shipments",
+  "Reject invoice 5 — amount exceeds expected",
   "Give me a daily operations briefing",
-  "Which orders need attention today?",
+  "Which workflow stages have SLA breaches and who owns them?",
 ];
+
+function executeVerb(verb: string, args: any[]): { ok: boolean; error?: string } {
+  try {
+    const [modKey, action] = verb.split(".");
+    const w = window as any;
+    const handlers = w.__foraxisActions?.[modKey];
+    if (!handlers || typeof handlers[action] !== "function") {
+      return { ok: false, error: `Module "${modKey}" not active. Open the ${modKey} page first.` };
+    }
+    handlers[action](...(args ?? []));
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? "Execution failed" };
+  }
+}
 
 async function gatherContext(): Promise<Record<string, unknown>> {
   // Pull a compact snapshot. Each list capped to keep prompt size sane.
@@ -113,11 +133,25 @@ export function AiAssistant() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      const acts: AiAction[] = Array.isArray(data?.actions) ? data.actions : [];
+      // Auto-execute non-destructive execute actions immediately
+      const autoRun = acts.filter((a) => a.type === "execute" && a.variant !== "destructive" && a.verb);
+      const executed: ExecResult[] = autoRun.map((a) => {
+        const res = executeVerb(a.verb!, a.args ?? []);
+        return { ok: res.ok, label: a.label, error: res.error };
+      });
       setMessages((m) => [...m, {
         role: "assistant",
         content: data?.answer ?? "No response.",
-        actions: Array.isArray(data?.actions) ? data.actions : [],
+        actions: acts,
+        executed,
       }]);
+      if (executed.length) {
+        const okCount = executed.filter((e) => e.ok).length;
+        const failCount = executed.length - okCount;
+        if (okCount) toast.success(`Executed ${okCount} action${okCount > 1 ? "s" : ""}`);
+        if (failCount) toast.error(`${failCount} action${failCount > 1 ? "s" : ""} failed`);
+      }
     } catch (e: any) {
       const msg = e?.message ?? "Something went wrong";
       setMessages((m) => [...m, { role: "assistant", content: `⚠️ ${msg}`, actions: [] }]);
@@ -143,6 +177,12 @@ export function AiAssistant() {
       navigate(`${a.path}${params.toString() ? `?${params}` : ""}`);
       setOpen(false);
       toast.info(`Applied filter: ${a.filterKey}=${a.value}`);
+      return;
+    }
+    if (a.type === "execute" && a.verb) {
+      const res = executeVerb(a.verb, a.args ?? []);
+      if (res.ok) toast.success(a.label);
+      else toast.error(`Failed: ${a.label}`, { description: res.error });
       return;
     }
     if (a.type === "info") toast.info(a.label);
@@ -218,20 +258,40 @@ export function AiAssistant() {
                           className="text-sm leading-relaxed prose-sm"
                           dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }}
                         />
+                        {m.executed && m.executed.length > 0 && (
+                          <div className="rounded-md border border-border bg-muted/30 p-2 space-y-1">
+                            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Actions executed</p>
+                            {m.executed.map((r, k) => (
+                              <div key={k} className="flex items-start gap-2 text-xs">
+                                {r.ok
+                                  ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600 flex-shrink-0 mt-0.5" />
+                                  : <AlertCircle className="h-3.5 w-3.5 text-destructive flex-shrink-0 mt-0.5" />}
+                                <span className={r.ok ? "text-foreground" : "text-destructive"}>
+                                  {r.label}{!r.ok && r.error ? ` — ${r.error}` : ""}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {m.actions && m.actions.length > 0 && (
                           <div className="flex flex-wrap gap-2 pt-1">
-                            {m.actions.map((a, j) => (
-                              <Button
-                                key={j}
-                                size="sm"
-                                variant={a.variant ?? "outline"}
-                                onClick={() => runAction(a)}
-                                className="gap-1.5 h-8"
-                              >
-                                {a.type === "external" ? <ExternalLink className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5" />}
-                                {a.label}
-                              </Button>
-                            ))}
+                            {m.actions.map((a, j) => {
+                              const isExec = a.type === "execute";
+                              const Icon = a.type === "external" ? ExternalLink : isExec ? Play : ArrowRight;
+                              const label = isExec && a.variant !== "destructive" ? `Re-run: ${a.label}` : a.label;
+                              return (
+                                <Button
+                                  key={j}
+                                  size="sm"
+                                  variant={a.variant ?? (isExec ? "secondary" : "outline")}
+                                  onClick={() => runAction(a)}
+                                  className="gap-1.5 h-8"
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                  {label}
+                                </Button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

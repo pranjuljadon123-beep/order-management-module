@@ -1,18 +1,26 @@
 import { useEffect } from "react";
 
 /**
- * Publishes a module-scoped data snapshot to window.__foraxisCtx so the
- * AiAssistant can include it as context when calling the AI edge function.
- * Snapshots are intentionally global (not React state) to avoid forcing
- * every consumer page to thread props down to a portal-rendered panel.
+ * Publishes a module-scoped data snapshot and optional action handlers to
+ * window.__foraxisCtx so the AiAssistant can read state and execute mutations
+ * across modules without prop-drilling.
  */
-export function useAiContext(key: "tracking" | "workflow" | "invoices", value: unknown) {
+export type AiActionHandlers = Record<string, (...args: any[]) => any>;
+
+export function useAiContext(
+  key: "tracking" | "workflow" | "invoices",
+  value: unknown,
+  actions?: AiActionHandlers,
+) {
   useEffect(() => {
     const w = window as any;
     w.__foraxisCtx = w.__foraxisCtx ?? {};
     w.__foraxisCtx[key] = value;
+    w.__foraxisActions = w.__foraxisActions ?? {};
+    if (actions) w.__foraxisActions[key] = actions;
     return () => {
       if (w.__foraxisCtx) delete w.__foraxisCtx[key];
+      if (w.__foraxisActions) delete w.__foraxisActions[key];
     };
-  }, [key, value]);
+  }, [key, value, actions]);
 }

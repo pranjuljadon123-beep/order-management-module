@@ -110,7 +110,28 @@ export function useShipmentWorkflow() {
   const [stageFilter, setStageFilter] = useState<WorkflowStage | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
 
-  const workflows = MOCK_WORKFLOWS;
+  const [workflows, setWorkflows] = useState<ShipmentWorkflow[]>(MOCK_WORKFLOWS);
+
+  const advanceShipmentStage = (id: string) => {
+    setWorkflows((prev) => prev.map((w) => {
+      if (w.id !== id) return w;
+      const idx = STAGE_INDEX[w.currentStage];
+      if (idx >= STAGES.length - 1) return w;
+      const nextStage = STAGES[idx + 1].key;
+      return { ...w, currentStage: nextStage, stages: buildStages(nextStage) };
+    }));
+  };
+
+  const reassignStageOwner = (id: string, ownerName: string) => {
+    setWorkflows((prev) => prev.map((w) => {
+      if (w.id !== id) return w;
+      return { ...w, stages: w.stages.map((s) => s.isCurrent ? { ...s, ownerName } : s) };
+    }));
+  };
+
+  const setShipmentPriority = (id: string, priority: ShipmentWorkflow["priority"]) => {
+    setWorkflows((prev) => prev.map((w) => w.id === id ? { ...w, priority } : w));
+  };
 
   const filtered = useMemo(() => {
     return workflows.filter(w => {
@@ -173,8 +194,12 @@ export function useShipmentWorkflow() {
     stageFilter, setStageFilter,
     priorityFilter, setPriorityFilter,
     workflows: filtered,
+    allWorkflows: workflows,
     stageGroups,
     stats,
     bottlenecks,
+    advanceShipmentStage,
+    reassignStageOwner,
+    setShipmentPriority,
   };
 }
