@@ -1,18 +1,20 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { 
-  FileText, 
-  Users, 
-  MessageSquare, 
-  Truck, 
+import {
+  FileText,
+  Users,
+  MessageSquare,
+  Truck,
   BarChart3,
   Plus,
   Edit,
-  Download
+  Download,
 } from 'lucide-react';
 import { VendorQuoteGrid } from './VendorQuoteGrid';
 import { RfqEnquiryDetails } from './RfqEnquiryDetails';
+import { AwardsPanel } from './AwardsPanel';
 import type { Rfq, RfqLane } from '@/types/procurement';
+import { toast } from 'sonner';
 
 interface RfqDetailTabsProps {
   rfq: Rfq;
@@ -21,6 +23,27 @@ interface RfqDetailTabsProps {
 }
 
 export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsProps) {
+  const handleDownloadAll = () => {
+    const rows = [['Lane', 'Origin', 'Destination', 'Quotes']];
+    lanes.forEach((l) => {
+      rows.push([
+        String(l.lane_number ?? ''),
+        `${l.origin_city ?? ''}, ${l.origin_country ?? ''}`,
+        `${l.destination_city ?? ''}, ${l.destination_country ?? ''}`,
+        String((l as any).quotes?.length ?? 0),
+      ]);
+    });
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${rfq.rfq_number}-quotes.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Quotes exported');
+  };
+
   return (
     <Tabs defaultValue="quotes" className="space-y-4">
       <div className="flex items-center justify-between">
@@ -50,15 +73,29 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
         {/* Action buttons - only show for buyers */}
         {!isVendor && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => toast.info('Use "New Auction RFQ" to add another lane to a new RFQ')}
+            >
               <Plus className="h-4 w-4" />
               Add
             </Button>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => toast.info('Editing is available while the RFQ is in draft status')}
+            >
               <Edit className="h-4 w-4" />
               Edit
             </Button>
-            <Button size="sm" className="gap-2 bg-accent hover:bg-accent/90">
+            <Button
+              size="sm"
+              className="gap-2 bg-accent hover:bg-accent/90"
+              onClick={handleDownloadAll}
+            >
               <Download className="h-4 w-4" />
               Download All Quotes
             </Button>
@@ -73,9 +110,20 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
       <TabsContent value="vendors">
         <div className="glass-card rounded-xl p-6">
           <h3 className="text-lg font-semibold mb-4">Invited Vendors</h3>
-          <p className="text-muted-foreground">
-            Vendor quoting management coming soon. View and manage which vendors have been invited and their quote status.
-          </p>
+          {Array.isArray((rfq as any).invited_carriers) && (rfq as any).invited_carriers.length > 0 ? (
+            <ul className="divide-y divide-border">
+              {(rfq as any).invited_carriers.map((c: any) => (
+                <li key={c.id ?? c} className="flex items-center justify-between py-3">
+                  <span className="font-medium">{c.name ?? c}</span>
+                  <span className="text-sm text-muted-foreground">{c.code ?? ''}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">
+              No invited vendors recorded on this RFQ. Switch to the Quotes Received tab to see who has submitted.
+            </p>
+          )}
         </div>
       </TabsContent>
 
@@ -92,20 +140,29 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
       </TabsContent>
 
       <TabsContent value="dispatch">
-        <div className="glass-card rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-4">Dispatch Management</h3>
-          <p className="text-muted-foreground">
-            Dispatch functionality coming soon. Create and manage shipment dispatches from awarded quotes.
-          </p>
-        </div>
+        <AwardsPanel rfqId={rfq.id} />
       </TabsContent>
 
       <TabsContent value="analytics">
-        <div className="glass-card rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-4">Quote Analytics</h3>
-          <p className="text-muted-foreground">
-            Analytics dashboard coming soon. View quote comparisons, savings analysis, and vendor performance metrics.
-          </p>
+        <div className="glass-card rounded-xl p-6 space-y-4">
+          <h3 className="text-lg font-semibold">Quote Analytics</h3>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <p className="text-xs text-muted-foreground">Lanes</p>
+              <p className="text-2xl font-bold">{lanes.length}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-xs text-muted-foreground">Quotes Received</p>
+              <p className="text-2xl font-bold">{(rfq.quotes?.length ?? 0)}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-xs text-muted-foreground">Status</p>
+              <p className="text-2xl font-bold capitalize">{rfq.status}</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleDownloadAll} className="gap-2">
+            <Download className="h-4 w-4" /> Export Analytics CSV
+          </Button>
         </div>
       </TabsContent>
     </Tabs>

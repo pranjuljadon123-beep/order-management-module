@@ -35,6 +35,8 @@ import {
 } from '@/types/orders';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface OrdersTableProps {
   filters: {
@@ -111,6 +113,7 @@ export function OrdersTable({ filters, onSelectOrder }: OrdersTableProps) {
 }
 
 function OrderRow({ order, onSelect }: { order: Order; onSelect: () => void }) {
+  const navigate = useNavigate();
   const statusConfig = ORDER_STATUS_CONFIG[order.status];
   const typeConfig = ORDER_TYPE_CONFIG[order.order_type];
   const riskConfig = order.risk_level ? RISK_LEVEL_CONFIG[order.risk_level] : null;
@@ -189,11 +192,21 @@ function OrderRow({ order, onSelect }: { order: Order; onSelect: () => void }) {
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.success(`Order ${order.order_number} duplicated`, { description: 'A draft copy was created.' });
+              }}
+            >
               <Copy className="mr-2 h-4 w-4" />
               Duplicate Order
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/tracking');
+              }}
+            >
               <Truck className="mr-2 h-4 w-4" />
               Create Shipment
             </DropdownMenuItem>

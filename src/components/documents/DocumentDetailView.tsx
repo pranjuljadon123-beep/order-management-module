@@ -47,6 +47,22 @@ export function DocumentDetailView({ documentId, onBack }: DocumentDetailViewPro
   const addComment = useAddDocumentComment();
   const [newComment, setNewComment] = useState('');
 
+  const handleDownload = () => {
+    if (document?.file_url) {
+      window.open(document.file_url, '_blank');
+      return;
+    }
+    const payload = JSON.stringify(document?.content_data ?? {}, null, 2);
+    const blob = new Blob([payload], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = window.document.createElement('a');
+    a.href = url;
+    a.download = `${document?.document_number ?? 'document'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: 'Document exported' });
+  };
+
   const handleStatusChange = async (newStatus: DocumentStatus) => {
     try {
       await updateStatus.mutateAsync({ documentId, status: newStatus });
@@ -111,11 +127,15 @@ export function DocumentDetailView({ documentId, onBack }: DocumentDetailViewPro
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => toast({ title: 'Edit document', description: 'Use the workflow buttons below to update status.' })}
+          >
             <Edit className="h-4 w-4" />
             Edit
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleDownload}>
             <Download className="h-4 w-4" />
             Download PDF
           </Button>

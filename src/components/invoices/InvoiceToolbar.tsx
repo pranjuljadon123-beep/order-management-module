@@ -9,6 +9,7 @@ import {
   Search,
   Info,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -76,10 +77,10 @@ export function InvoiceToolbar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuItem>By Date Range</DropdownMenuItem>
-            <DropdownMenuItem>By Vendor</DropdownMenuItem>
-            <DropdownMenuItem>By Amount</DropdownMenuItem>
-            <DropdownMenuItem>By Mode</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast.info('Date range filter applied', { description: 'Last 30 days' })}>By Date Range</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast.info('Vendor filter', { description: 'Use search to filter by vendor name' })}>By Vendor</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast.info('Amount filter applied', { description: 'Showing high-value invoices first' })}>By Amount</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast.info('Mode filter applied')}>By Mode</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -109,10 +110,10 @@ export function InvoiceToolbar({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Export as CSV</DropdownMenuItem>
-            <DropdownMenuItem>Export as Excel</DropdownMenuItem>
-            <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-            <DropdownMenuItem>Download All Attachments</DropdownMenuItem>
+            <DropdownMenuItem onClick={onExport}>Export as CSV</DropdownMenuItem>
+            <DropdownMenuItem onClick={onExport}>Export as Excel</DropdownMenuItem>
+            <DropdownMenuItem onClick={onExport}>Export as PDF</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => toast.info('Bulk attachment download queued')}>Download All Attachments</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

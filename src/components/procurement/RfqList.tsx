@@ -180,7 +180,7 @@ export function RfqList({ onSelectRfq }: RfqListProps) {
                             </DropdownMenuItem>
                           )}
                           {rfq.status === 'evaluation' && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSelectRfq(rfq)}>
                               <Award className="mr-2 h-4 w-4" />
                               Award Lanes
                             </DropdownMenuItem>
