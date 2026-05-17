@@ -1,9 +1,11 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { WebsiteLayout } from "@/components/website/WebsiteLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, FileText, BookOpen, Video, Download } from "lucide-react";
+import { toast } from "sonner";
 
 const resources = [
   {
@@ -51,6 +53,17 @@ const resources = [
 ];
 
 export default function Resources() {
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Guides' | 'Whitepapers' | 'Case Studies' | 'Webinars'>('All');
+  const filteredResources = useMemo(() => {
+    if (activeFilter === 'All') return resources;
+    const map: Record<string, string> = {
+      Guides: 'Guide',
+      Whitepapers: 'Whitepaper',
+      'Case Studies': 'Case Study',
+      Webinars: 'Webinar',
+    };
+    return resources.filter((r) => r.type === map[activeFilter]);
+  }, [activeFilter]);
   return (
     <WebsiteLayout>
       {/* Hero */}
@@ -84,7 +97,10 @@ export default function Resources() {
                   Insights from 500+ enterprise operations leaders on the trends, challenges, 
                   and opportunities shaping the industry.
                 </p>
-                <Button className="bg-gradient-to-r from-teal to-ocean hover:opacity-90">
+                <Button
+                  className="bg-gradient-to-r from-teal to-ocean hover:opacity-90"
+                  onClick={() => toast.success('Report download started', { description: '2026 State of Operations Report (PDF)' })}
+                >
                   <Download className="mr-2 h-4 w-4" />
                   Download Report
                 </Button>
@@ -117,8 +133,12 @@ export default function Resources() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {resources.map((resource, index) => (
-              <Card key={index} className="group cursor-pointer border-border/50 transition-all hover:border-teal/30 hover:shadow-lg">
+            {filteredResources.map((resource, index) => (
+              <Card
+                key={index}
+                onClick={() => toast.info(resource.title, { description: 'Resource access coming soon — request a demo for early access.' })}
+                className="group cursor-pointer border-border/50 transition-all hover:border-teal/30 hover:shadow-lg"
+              >
                 <CardContent className="flex h-full flex-col p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal/10 text-teal">
