@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -53,17 +53,17 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           {!collapsed && (
-            <div className="flex items-center gap-2">
+            <Link to="/" aria-label="Go to Control Tower" className="flex items-center gap-2 rounded-md transition-opacity hover:opacity-80">
               <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
               <span className="text-lg font-bold text-sidebar-accent-foreground">
                 Foraxis
               </span>
-            </div>
+            </Link>
           )}
           {collapsed && (
-            <div className="mx-auto">
+            <Link to="/" aria-label="Go to Control Tower" className="mx-auto transition-opacity hover:opacity-80">
               <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
-            </div>
+            </Link>
           )}
           <button
             onClick={() => onCollapsedChange(!collapsed)}
