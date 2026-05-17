@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const shipments = [
   {
@@ -83,6 +84,7 @@ const getStatusBadge = (status: string) => {
 };
 
 export function ShipmentTable() {
+  const navigate = useNavigate();
   return (
     <div className="glass-card rounded-xl overflow-hidden">
       <div className="flex items-center justify-between border-b border-border/50 px-6 py-4">
@@ -92,7 +94,7 @@ export function ShipmentTable() {
             Track and manage your active shipments
           </p>
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={() => navigate("/tracking")}>
           View All
         </Button>
       </div>
@@ -186,11 +188,11 @@ export function ShipmentTable() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/tracking")}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate("/documents")}>
                           <FileText className="mr-2 h-4 w-4" />
                           Documents
                         </DropdownMenuItem>

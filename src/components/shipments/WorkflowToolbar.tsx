@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { STAGES, type WorkflowStage } from "@/hooks/useShipmentWorkflow";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface WorkflowToolbarProps {
   viewMode: "kanban" | "table";
@@ -28,6 +29,7 @@ export function WorkflowToolbar({
   stageFilter, setStageFilter,
   priorityFilter, setPriorityFilter,
 }: WorkflowToolbarProps) {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2 flex-1">
@@ -87,7 +89,11 @@ export function WorkflowToolbar({
             Table
           </Button>
         </div>
-        <Button size="sm" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button
+          size="sm"
+          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={() => navigate("/tracking")}
+        >
           <Plus className="h-4 w-4" />
           New Shipment
         </Button>
