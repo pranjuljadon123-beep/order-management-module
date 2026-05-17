@@ -39,6 +39,7 @@ import {
 } from '@/types/documents';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DocumentsTableProps {
   filters: {
@@ -195,7 +196,16 @@ function DocumentRow({ document, onSelect }: { document: Document; onSelect: () 
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                if (document.file_url) {
+                  window.open(document.file_url, '_blank');
+                } else {
+                  toast.info('No file attached', { description: 'This document was generated from order data.' });
+                }
+              }}
+            >
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </DropdownMenuItem>

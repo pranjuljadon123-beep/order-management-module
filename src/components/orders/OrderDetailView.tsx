@@ -25,6 +25,7 @@ import { ORDER_STATUS_CONFIG, ORDER_TYPE_CONFIG, RISK_LEVEL_CONFIG, type OrderSt
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface OrderDetailViewProps {
   orderId: string;
@@ -32,6 +33,7 @@ interface OrderDetailViewProps {
 }
 
 export function OrderDetailView({ orderId, onBack }: OrderDetailViewProps) {
+  const navigate = useNavigate();
   const { data: order, isLoading } = useOrder(orderId);
   const { data: transitions } = useOrderStateTransitions(orderId);
   const { data: shipments } = useOrderShipments(orderId);
@@ -98,11 +100,15 @@ export function OrderDetailView({ orderId, onBack }: OrderDetailViewProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => toast({ title: 'Edit order', description: 'Inline editing coming soon — use status workflow to advance the order.' })}
+          >
             <Edit className="h-4 w-4" />
             Edit Order
           </Button>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => navigate('/tracking')}>
             <Truck className="h-4 w-4" />
             Create Shipment
           </Button>
@@ -321,7 +327,7 @@ export function OrderDetailView({ orderId, onBack }: OrderDetailViewProps) {
                   <Truck className="mx-auto h-12 w-12 text-muted-foreground/50" />
                   <p className="mt-4 font-medium">No shipments linked yet</p>
                   <p className="text-sm">Create a shipment from this order to start tracking</p>
-                  <Button className="mt-4">Create Shipment</Button>
+                  <Button className="mt-4" onClick={() => navigate('/tracking')}>Create Shipment</Button>
                 </>
               )}
             </CardContent>
@@ -353,7 +359,7 @@ export function OrderDetailView({ orderId, onBack }: OrderDetailViewProps) {
                   <FileText className="mx-auto h-12 w-12 text-muted-foreground/50" />
                   <p className="mt-4 font-medium">No documents attached</p>
                   <p className="text-sm">Upload documents or generate them automatically</p>
-                  <Button className="mt-4">Upload Document</Button>
+                  <Button className="mt-4" onClick={() => navigate('/documents')}>Upload Document</Button>
                 </>
               )}
             </CardContent>
@@ -415,7 +421,13 @@ export function OrderDetailView({ orderId, onBack }: OrderDetailViewProps) {
                         <p className="font-medium">{rec.title}</p>
                         <p className="text-sm text-muted-foreground">{rec.description}</p>
                         {rec.action && (
-                          <Button size="sm" className="mt-2">{rec.action}</Button>
+                          <Button
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => toast({ title: rec.action, description: rec.description ?? '' })}
+                          >
+                            {rec.action}
+                          </Button>
                         )}
                       </div>
                     ))}
