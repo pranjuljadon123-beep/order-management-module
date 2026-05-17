@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { RfqLane, Quote, Carrier, Surcharge, RfqStatus } from '@/types/procurement';
+import { toast } from 'sonner';
 
 interface VendorQuoteGridProps {
   lane: RfqLane;
@@ -151,7 +152,12 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
                 <span className="text-sm font-medium">Vendor</span>
               </div>
               <span className="text-sm text-muted-foreground mb-2">Price</span>
-              <Button variant="outline" size="sm" className="w-fit">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-fit"
+                onClick={() => toast.info('Vendor filter', { description: 'Filter by carrier, rating or rank — coming inline soon.' })}
+              >
                 <Filter className="h-3 w-3 mr-1" />
                 Filter
               </Button>
@@ -192,9 +198,9 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Download Quote</DropdownMenuItem>
-                      <DropdownMenuItem>Send Message</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.info(`${carrier?.name ?? 'Carrier'} — quote details`)}>View Details</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.success('Quote PDF queued for download')}>Download Quote</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => toast.info('Messaging will open in the Messages module')}>Send Message</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   
@@ -259,10 +265,19 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
                   <div className="p-3 border-t border-border space-y-2">
                     {isConfirmed ? (
                       <div className="grid grid-cols-2 gap-1">
-                        <Button size="sm" variant="outline" className="text-xs">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`)}
+                        >
                           Reconfirm
                         </Button>
-                        <Button size="sm" className="text-xs bg-accent hover:bg-accent/90">
+                        <Button
+                          size="sm"
+                          className="text-xs bg-accent hover:bg-accent/90"
+                          onClick={() => toast.success('Dispatch instruction sent', { description: `${carrier?.name ?? 'Carrier'} notified.` })}
+                        >
                           Dispatch
                         </Button>
                       </div>
@@ -283,7 +298,12 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
                             </>
                           )}
                         </Button>
-                        <Button size="sm" variant="outline" className="text-xs">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => toast.info('Negotiation thread opened', { description: `Sending counter-offer request to ${carrier?.name ?? 'vendor'}.` })}
+                        >
                           Negotiate
                         </Button>
                       </div>
@@ -293,7 +313,12 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
                       </Button>
                     )}
                     
-                    <Button variant="outline" size="sm" className="w-full text-xs">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-xs"
+                      onClick={() => toast.info(`Open conversation with ${carrier?.name ?? 'vendor'}`)}
+                    >
                       <MessageSquare className="h-3 w-3 mr-1" />
                       Messages
                     </Button>

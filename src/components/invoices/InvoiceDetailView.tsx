@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { Invoice } from "@/types/invoices";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface InvoiceDetailViewProps {
   invoice: Invoice;
@@ -102,13 +103,31 @@ export function InvoiceDetailView({ invoice, onBack, onApprove, onReject }: Invo
               </>
             )}
             <Separator orientation="vertical" className="h-8 mx-2" />
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Download"
+              onClick={() => toast.success(`Invoice ${invoice.gid} download started`)}
+            >
               <Download className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Print"
+              onClick={() => window.print()}
+            >
               <Printer className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Share"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/invoices?id=${invoice.gid}`);
+                toast.success("Share link copied");
+              }}
+            >
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
@@ -319,7 +338,12 @@ export function InvoiceDetailView({ invoice, onBack, onApprove, onReject }: Invo
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm font-medium">Invoice_{invoice.gid}.pdf</p>
                   <p className="text-xs text-muted-foreground mt-1">PDF Document</p>
-                  <Button variant="outline" size="sm" className="mt-3 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 gap-2"
+                    onClick={() => toast.success(`Invoice_${invoice.gid}.pdf download started`)}
+                  >
                     <Download className="h-3.5 w-3.5" />
                     Download
                   </Button>
