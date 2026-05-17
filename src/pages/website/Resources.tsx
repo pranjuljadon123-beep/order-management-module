@@ -103,11 +103,16 @@ export default function Resources() {
           <div className="mb-8 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">All Resources</h2>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">All</Button>
-              <Button variant="ghost" size="sm">Guides</Button>
-              <Button variant="ghost" size="sm">Whitepapers</Button>
-              <Button variant="ghost" size="sm">Case Studies</Button>
-              <Button variant="ghost" size="sm">Webinars</Button>
+              {(['All', 'Guides', 'Whitepapers', 'Case Studies', 'Webinars'] as const).map((label) => (
+                <Button
+                  key={label}
+                  variant={activeFilter === label ? 'outline' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveFilter(label)}
+                >
+                  {label}
+                </Button>
+              ))}
             </div>
           </div>
 

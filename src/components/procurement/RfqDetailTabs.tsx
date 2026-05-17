@@ -27,7 +27,7 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
     const rows = [['Lane', 'Origin', 'Destination', 'Quotes']];
     lanes.forEach((l) => {
       rows.push([
-        l.lane_number ?? '',
+        String(l.lane_number ?? ''),
         `${l.origin_city ?? ''}, ${l.origin_country ?? ''}`,
         `${l.destination_city ?? ''}, ${l.destination_country ?? ''}`,
         String((l as any).quotes?.length ?? 0),

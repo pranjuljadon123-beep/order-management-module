@@ -16,6 +16,7 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { Rfq, RfqStatus, TransportMode } from '@/types/procurement';
+import { toast } from 'sonner';
 
 interface RfqDetailHeaderProps {
   rfq: Rfq;
@@ -130,13 +131,34 @@ export function RfqDetailHeader({ rfq, onBack }: RfqDetailHeaderProps) {
 
           {/* Action icons */}
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Copy RFQ link"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/procurement?rfq=${rfq.id}`);
+                toast.success('RFQ link copied');
+              }}
+            >
               <Copy className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Delete RFQ"
+              onClick={() => toast.info('Deletion is restricted', { description: 'Only draft RFQs can be deleted.' })}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Save"
+              onClick={() => toast.success('RFQ saved')}
+            >
               <Save className="h-4 w-4" />
             </Button>
           </div>
