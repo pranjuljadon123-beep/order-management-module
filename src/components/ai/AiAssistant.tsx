@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Loader2, ExternalLink, ArrowRight, X, Wand2, CheckCircle2, AlertCircle, Play } from "lucide-react";
+import { Sparkles, Send, Loader2, ExternalLink, ArrowRight, X, Wand2, CheckCircle2, AlertCircle, Play, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,21 @@ type AiAction = {
   variant?: "default" | "secondary" | "destructive" | "outline";
 };
 
+type Chip = { label: string; value: string };
+type ClarifyQuestion = {
+  slot: string;
+  question: string;
+  chips?: Chip[];
+  allowFreeText?: boolean;
+  multi?: boolean;
+};
+type Clarify = {
+  intent: string;
+  collected?: Record<string, unknown>;
+  questions: ClarifyQuestion[];
+};
+type Pending = { intent: string; collected?: Record<string, unknown>; complete?: boolean } | null;
+
 type ExecResult = { ok: boolean; label: string; error?: string };
 
 type AiMessage = {
@@ -28,6 +43,9 @@ type AiMessage = {
   content: string;
   actions?: AiAction[];
   executed?: ExecResult[];
+  clarify?: Clarify | null;
+  // per-message multi-select scratchpad keyed by slot
+  selected?: Record<string, string[]>;
 };
 
 const SUGGESTED_QUESTIONS = [
@@ -107,6 +125,7 @@ export function AiAssistant() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<AiMessage[]>([]);
+  const [pending, setPending] = useState<Pending>(null);
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -119,7 +138,7 @@ export function AiAssistant() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
 
-  async function ask(question: string) {
+  async function ask(question: string, overridePending?: Pending) {
     if (!question.trim() || loading) return;
     const userMsg: AiMessage = { role: "user", content: question };
     setMessages((m) => [...m, userMsg]);
@@ -129,13 +148,18 @@ export function AiAssistant() {
       const context = await gatherContext();
       const history = messages.map((m) => ({ role: m.role, content: m.content }));
       const { data, error } = await supabase.functions.invoke("ai-assistant", {
-        body: { question, context, history },
+        body: { question, context, history, pending: overridePending ?? pending },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       const acts: AiAction[] = Array.isArray(data?.actions) ? data.actions : [];
-      // Auto-execute non-destructive execute actions immediately
-      const autoRun = acts.filter((a) => a.type === "execute" && a.variant !== "destructive" && a.verb);
+      const clarify: Clarify | null = data?.clarify ?? null;
+      const nextPending: Pending = data?.pending ?? null;
+      setPending(nextPending && !nextPending.complete ? nextPending : null);
+      // Auto-execute ONLY when there is no clarify pending — model has all slots.
+      const autoRun = clarify
+        ? []
+        : acts.filter((a) => a.type === "execute" && a.variant !== "destructive" && a.verb);
       const executed: ExecResult[] = autoRun.map((a) => {
         const res = executeVerb(a.verb!, a.args ?? []);
         return { ok: res.ok, label: a.label, error: res.error };
@@ -145,6 +169,8 @@ export function AiAssistant() {
         content: data?.answer ?? "No response.",
         actions: acts,
         executed,
+        clarify,
+        selected: {},
       }]);
       if (executed.length) {
         const okCount = executed.filter((e) => e.ok).length;
@@ -159,6 +185,19 @@ export function AiAssistant() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function updateMessageSelection(idx: number, slot: string, values: string[]) {
+    setMessages((m) => m.map((msg, i) => i === idx ? { ...msg, selected: { ...(msg.selected ?? {}), [slot]: values } } : msg));
+  }
+
+  function submitChipAnswer(msgIdx: number, q: ClarifyQuestion, valueOverride?: string) {
+    const selectedNow = messages[msgIdx]?.selected?.[q.slot] ?? [];
+    const values = valueOverride ? [valueOverride] : selectedNow;
+    if (values.length === 0) return;
+    const labels = values.map((v) => q.chips?.find((c) => c.value === v)?.label ?? v);
+    const text = `${q.slot}: ${labels.join(", ")}`;
+    ask(text);
   }
 
   function runAction(a: AiAction) {
@@ -273,6 +312,60 @@ export function AiAssistant() {
                             ))}
                           </div>
                         )}
+                        {m.clarify && m.clarify.questions?.length > 0 && (
+                          <div className="rounded-lg border border-accent/40 bg-accent/5 p-3 space-y-3">
+                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-accent">
+                              <HelpCircle className="h-3.5 w-3.5" />
+                              I need a few details to proceed
+                            </div>
+                            {m.clarify.questions.map((q) => {
+                              const selected = m.selected?.[q.slot] ?? [];
+                              return (
+                                <div key={q.slot} className="space-y-1.5">
+                                  <p className="text-xs font-medium">{q.question}</p>
+                                  {q.chips && q.chips.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {q.chips.map((c) => {
+                                        const isSel = selected.includes(c.value);
+                                        return (
+                                          <button
+                                            key={c.value}
+                                            onClick={() => {
+                                              if (q.multi) {
+                                                const next = isSel
+                                                  ? selected.filter((v) => v !== c.value)
+                                                  : [...selected, c.value];
+                                                updateMessageSelection(i, q.slot, next);
+                                              } else {
+                                                submitChipAnswer(i, q, c.value);
+                                              }
+                                            }}
+                                            className={cn(
+                                              "px-2.5 py-1 rounded-full text-xs border transition-colors",
+                                              isSel
+                                                ? "bg-primary text-primary-foreground border-primary"
+                                                : "bg-background border-border hover:border-accent hover:bg-accent/10"
+                                            )}
+                                          >
+                                            {c.label}
+                                          </button>
+                                        );
+                                      })}
+                                      {q.multi && selected.length > 0 && (
+                                        <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => submitChipAnswer(i, q)}>
+                                          Confirm ({selected.length})
+                                        </Button>
+                                      )}
+                                    </div>
+                                  )}
+                                  {q.allowFreeText && (
+                                    <p className="text-[10px] text-muted-foreground">…or type your answer below.</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                         {m.actions && m.actions.length > 0 && (
                           <div className="flex flex-wrap gap-2 pt-1">
                             {m.actions.map((a, j) => {
@@ -309,6 +402,19 @@ export function AiAssistant() {
           </div>
 
           <div className="border-t border-border p-3 bg-background">
+            {pending && (
+              <div className="flex items-center justify-between mb-2 px-2 py-1 rounded-md border border-accent/30 bg-accent/5 text-[11px]">
+                <span className="text-muted-foreground">
+                  In progress: <span className="font-medium text-foreground">{pending.intent}</span>
+                </span>
+                <button
+                  onClick={() => { setPending(null); toast.info("Task cancelled"); }}
+                  className="text-muted-foreground hover:text-destructive flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" /> Cancel
+                </button>
+              </div>
+            )}
             <div className="relative">
               <Textarea
                 ref={textareaRef}
@@ -320,7 +426,7 @@ export function AiAssistant() {
                     ask(input);
                   }
                 }}
-                placeholder="Ask anything about your shipments, invoices, vendors…"
+                placeholder={pending ? `Continue: ${pending.intent}…` : "Ask anything about your shipments, invoices, vendors…"}
                 className="min-h-[60px] max-h-32 pr-12 resize-none"
                 disabled={loading}
               />
@@ -337,7 +443,7 @@ export function AiAssistant() {
               <div className="flex items-center justify-between mt-2 px-1">
                 <span className="text-[11px] text-muted-foreground">Press Enter to send · Shift+Enter for new line</span>
                 <button
-                  onClick={() => setMessages([])}
+                  onClick={() => { setMessages([]); setPending(null); }}
                   className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
                 >
                   <X className="h-3 w-3" /> Clear chat
