@@ -11,7 +11,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import foraxisLogo from "@/assets/foraxis-logo.png";
+import daistrixLogo from "@/assets/daistrix-logo.png";
 
 const platformLinks = [
   { title: "Platform Overview", href: "/website/platform", description: "See how all modules work together" },
@@ -43,8 +43,8 @@ export function WebsiteHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         {/* Logo */}
         <Link to="/website" className="flex items-center gap-2">
-          <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
-          <span className="text-xl font-bold text-foreground">Foraxis</span>
+          <img src={daistrixLogo} alt="Daistrix" className="h-9 w-auto" />
+          <span className="text-xl font-bold text-foreground">Daistrix</span>
         </Link>
 
         {/* Desktop Navigation */}

@@ -15,7 +15,7 @@ import {
   Plane,
   ShoppingCart,
 } from "lucide-react";
-import foraxisLogo from "@/assets/foraxis-logo.png";
+import daistrixLogo from "@/assets/daistrix-logo.png";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Control Tower", path: "/" },
@@ -54,15 +54,15 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           {!collapsed && (
             <Link to="/" aria-label="Go to Control Tower" className="flex items-center gap-2 rounded-md transition-opacity hover:opacity-80">
-              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
+              <img src={daistrixLogo} alt="Daistrix" className="h-9 w-auto" />
               <span className="text-lg font-bold text-sidebar-accent-foreground">
-                Foraxis
+                Daistrix
               </span>
             </Link>
           )}
           {collapsed && (
             <Link to="/" aria-label="Go to Control Tower" className="mx-auto transition-opacity hover:opacity-80">
-              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
+              <img src={daistrixLogo} alt="Daistrix" className="h-9 w-auto" />
             </Link>
           )}
           <button

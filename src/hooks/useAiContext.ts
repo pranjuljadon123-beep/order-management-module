@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 /**
  * Publishes a module-scoped data snapshot and optional action handlers to
- * window.__foraxisCtx so the AiAssistant can read state and execute mutations
+ * window.__daistrixCtx so the AiAssistant can read state and execute mutations
  * across modules without prop-drilling.
  */
 export type AiActionHandlers = Record<string, (...args: any[]) => any>;
@@ -14,13 +14,13 @@ export function useAiContext(
 ) {
   useEffect(() => {
     const w = window as any;
-    w.__foraxisCtx = w.__foraxisCtx ?? {};
-    w.__foraxisCtx[key] = value;
-    w.__foraxisActions = w.__foraxisActions ?? {};
-    if (actions) w.__foraxisActions[key] = actions;
+    w.__daistrixCtx = w.__daistrixCtx ?? {};
+    w.__daistrixCtx[key] = value;
+    w.__daistrixActions = w.__daistrixActions ?? {};
+    if (actions) w.__daistrixActions[key] = actions;
     return () => {
-      if (w.__foraxisCtx) delete w.__foraxisCtx[key];
-      if (w.__foraxisActions) delete w.__foraxisActions[key];
+      if (w.__daistrixCtx) delete w.__daistrixCtx[key];
+      if (w.__daistrixActions) delete w.__daistrixActions[key];
     };
   }, [key, value, actions]);
 }

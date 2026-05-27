@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Youtube } from "lucide-react";
-import foraxisLogo from "@/assets/foraxis-logo.png";
+import daistrixLogo from "@/assets/daistrix-logo.png";
 
 const footerLinks = {
   platform: [
@@ -40,8 +40,8 @@ export function WebsiteFooter() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <Link to="/website" className="flex items-center gap-2">
-              <img src={foraxisLogo} alt="Foraxis" className="h-9 w-auto" />
-              <span className="text-xl font-bold text-foreground">Foraxis</span>
+              <img src={daistrixLogo} alt="Daistrix" className="h-9 w-auto" />
+              <span className="text-xl font-bold text-foreground">Daistrix</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               The execution backbone for enterprise operations, with intelligence layered on top.
@@ -131,7 +131,7 @@ export function WebsiteFooter() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/40 pt-8 md:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Foraxis. All rights reserved.
+            © {new Date().getFullYear()} Daistrix. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
