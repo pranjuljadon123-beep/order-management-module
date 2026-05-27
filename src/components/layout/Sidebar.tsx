@@ -15,7 +15,7 @@ import {
   Plane,
   ShoppingCart,
 } from "lucide-react";
-import daistrixLogo from "@/assets/daistrix-logo.png";
+import daistrixLogo from "@/assets/daistrix-logo.svg";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Control Tower", path: "/" },

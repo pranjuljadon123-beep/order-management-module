@@ -11,7 +11,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import daistrixLogo from "@/assets/daistrix-logo.png";
+import daistrixLogo from "@/assets/daistrix-logo.svg";
 
 const platformLinks = [
   { title: "Platform Overview", href: "/website/platform", description: "See how all modules work together" },

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Youtube } from "lucide-react";
-import daistrixLogo from "@/assets/daistrix-logo.png";
+import daistrixLogo from "@/assets/daistrix-logo.svg";
 
 const footerLinks = {
   platform: [
