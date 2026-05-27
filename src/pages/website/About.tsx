@@ -56,7 +56,7 @@ export default function About() {
               </span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground">
-              Foraxis was founded on a simple belief: enterprises deserve better than dashboards and 
+              Daistrix was founded on a simple belief: enterprises deserve better than dashboards and 
               spreadsheets. They deserve systems that actually execute.
             </p>
           </div>

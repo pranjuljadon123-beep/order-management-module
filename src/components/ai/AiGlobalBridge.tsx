@@ -80,7 +80,7 @@ export function AiGlobalBridge() {
     const car = String(carrier || "mscu").toLowerCase();
     if (!id) throw new Error("BL/Container number required");
 
-    const trackingActions = (window as any).__foraxisActions?.tracking;
+    const trackingActions = (window as any).__daistrixActions?.tracking;
     if (trackingActions?.addShipmentByBl) {
       trackingActions.addShipmentByBl(id, car);
       toast.success(`Tracking ${id}`);

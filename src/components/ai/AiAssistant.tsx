@@ -63,7 +63,7 @@ function executeVerb(verb: string, args: any[]): { ok: boolean; error?: string }
   try {
     const [modKey, action] = verb.split(".");
     const w = window as any;
-    const handlers = w.__foraxisActions?.[modKey];
+    const handlers = w.__daistrixActions?.[modKey];
     if (!handlers || typeof handlers[action] !== "function") {
       return { ok: false, error: `Module "${modKey}" not active. Open the ${modKey} page first.` };
     }
@@ -89,9 +89,9 @@ async function gatherContext(): Promise<Record<string, unknown>> {
   ]);
 
   // Pull tracking + workflow snapshots from window (set by hooks)
-  const tracking = (window as any).__foraxisCtx?.tracking ?? null;
-  const workflow = (window as any).__foraxisCtx?.workflow ?? null;
-  const invoices = (window as any).__foraxisCtx?.invoices ?? null;
+  const tracking = (window as any).__daistrixCtx?.tracking ?? null;
+  const workflow = (window as any).__daistrixCtx?.workflow ?? null;
+  const invoices = (window as any).__daistrixCtx?.invoices ?? null;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -238,10 +238,10 @@ export function AiAssistant() {
           "px-5 py-3 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40",
           "transition-all hover:scale-105 active:scale-95"
         )}
-        aria-label="Open Foraxis AI assistant"
+        aria-label="Open Daistrix AI assistant"
       >
         <Sparkles className="h-5 w-5" />
-        <span className="font-medium text-sm hidden sm:inline">Ask Foraxis AI</span>
+        <span className="font-medium text-sm hidden sm:inline">Ask Daistrix AI</span>
       </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
@@ -251,7 +251,7 @@ export function AiAssistant() {
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-primary-foreground" />
               </div>
-              Foraxis Copilot
+              Daistrix Copilot
               <Badge variant="secondary" className="ml-1 text-[10px]">Beta</Badge>
             </SheetTitle>
             <SheetDescription className="text-xs">
