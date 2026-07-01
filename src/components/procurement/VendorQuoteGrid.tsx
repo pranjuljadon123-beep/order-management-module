@@ -1,4 +1,4 @@
-import { useQuotesByLane, useCreateAward } from '@/hooks/useProcurement';
+import { useQuotesByLane, useCreateAward, useUpdateRfqStatus } from '@/hooks/useProcurement';
 import { useState, useMemo } from 'react';
 import { CreateDispatchDialog } from '@/components/dispatch/CreateDispatchDialog';
 import { useDispatches } from '@/hooks/useTeamsUsers';
@@ -42,6 +42,7 @@ interface VendorQuoteGridProps {
 export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidDeadline }: VendorQuoteGridProps) {
   const { data: quotes, isLoading } = useQuotesByLane(lane.id);
   const createAward = useCreateAward();
+  const updateRfqStatus = useUpdateRfqStatus();
   const { dispatches } = useDispatches();
   const [dispatchOpen, setDispatchOpen] = useState(false);
   const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
@@ -224,6 +225,43 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
           Deadline: {new Date(bidDeadline).toLocaleString()}
         </span>
       )}
+      {bidsOpen && !isVendor && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => updateRfqStatus.mutate({ id: rfqId, status: 'evaluation' })}
+          disabled={updateRfqStatus.isPending}
+        >
+          <Lock className="h-3 w-3 mr-1" />
+          Close Bids & Start Evaluation
+        </Button>
+      )}
+      {bidsClosed && !lane.is_awarded && !isVendor && sortedQuotes[0] && (
+        <Button
+          size="sm"
+          className="bg-success hover:bg-success/90"
+          onClick={() => handleAward(sortedQuotes[0])}
+          disabled={createAward.isPending}
+        >
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          Confirm Best Quote
+        </Button>
+      )}
+      {lane.is_awarded && !isVendor && (() => {
+        const confirmedQuote = sortedQuotes.find((q) => q.status === 'accepted');
+        const existing = confirmedQuote ? dispatchForQuote(confirmedQuote.id) : null;
+        if (!confirmedQuote || existing) return null;
+        return (
+          <Button
+            size="sm"
+            className="bg-accent hover:bg-accent/90"
+            onClick={() => openDispatch(confirmedQuote, confirmedQuote.carrier as Carrier)}
+          >
+            <Truck className="h-3 w-3 mr-1" />
+            Create Dispatch
+          </Button>
+        );
+      })()}
     </div>
 
     <div className="glass-card rounded-xl overflow-hidden">
