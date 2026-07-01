@@ -135,6 +135,7 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
             rfqId={rfq.id}
             rfqStatus={rfq.status}
             isVendor={isVendor}
+            bidDeadline={rfq.bid_deadline}
           />
         ))}
       </TabsContent>
