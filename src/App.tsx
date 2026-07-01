@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import VendorPortal from "./pages/VendorPortal";
 import VendorRfqDetail from "./pages/VendorRfqDetail";
+import Settings from "./pages/Settings";
 
 // Website Pages
 import WebsiteHome from "./pages/website/WebsiteHome";
@@ -68,7 +69,7 @@ const App = () => (
           <Route path="/invoices" element={<Invoices />} />
           <Route path="/risk" element={<PlaceholderPage title="Risk Monitor" description="Real-time disruption monitoring, weather alerts, and predictive risk analysis coming soon." />} />
           <Route path="/messages" element={<PlaceholderPage title="Messages" description="In-platform collaboration and communication tools coming soon." />} />
-          <Route path="/settings" element={<PlaceholderPage title="Settings" description="Configure your account, team, and integration settings." />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
