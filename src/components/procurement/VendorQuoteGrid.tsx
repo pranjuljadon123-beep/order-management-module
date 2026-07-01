@@ -1,4 +1,6 @@
 import { useQuotesByLane, useCreateAward } from '@/hooks/useProcurement';
+import { useState } from 'react';
+import { CreateDispatchDialog } from '@/components/dispatch/CreateDispatchDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -31,6 +33,22 @@ interface VendorQuoteGridProps {
 export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: VendorQuoteGridProps) {
   const { data: quotes, isLoading } = useQuotesByLane(lane.id);
   const createAward = useCreateAward();
+  const [dispatchOpen, setDispatchOpen] = useState(false);
+  const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
+
+  const openDispatch = (quote: Quote, carrier: Carrier) => {
+    setDispatchPrefill({
+      vendor: carrier?.name || '',
+      rfqId,
+      quoteId: quote.id,
+      laneId: lane.id,
+      originPort: lane.origin_port || `${lane.origin_city}${lane.origin_country ? ', ' + lane.origin_country : ''}`,
+      destinationPort: lane.destination_port || `${lane.destination_city}${lane.destination_country ? ', ' + lane.destination_country : ''}`,
+      mode: 'FCL',
+      containers: lane.equipment_type ? [{ size: lane.equipment_type, qty: lane.quantity || 1 }] : undefined,
+    });
+    setDispatchOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -276,7 +294,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
                         <Button
                           size="sm"
                           className="text-xs bg-accent hover:bg-accent/90"
-                          onClick={() => toast.success('Dispatch instruction sent', { description: `${carrier?.name ?? 'Carrier'} notified.` })}
+                          onClick={() => openDispatch(quote, carrier)}
                         >
                           Dispatch
                         </Button>
@@ -330,6 +348,11 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+      <CreateDispatchDialog
+        open={dispatchOpen}
+        onOpenChange={setDispatchOpen}
+        prefill={dispatchPrefill}
+      />
     </div>
   );
 }
