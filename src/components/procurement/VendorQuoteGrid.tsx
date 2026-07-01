@@ -42,10 +42,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false }: Ve
       rfqId,
       quoteId: quote.id,
       laneId: lane.id,
-      originPort: lane.origin_port || lane.origin || '',
-      destinationPort: lane.destination_port || lane.destination || '',
-      mode: (lane.mode || 'FCL').toUpperCase(),
-      containers: lane.container_type ? [{ size: lane.container_type, qty: lane.quantity || 1 }] : undefined,
+      originPort: lane.origin_port || `${lane.origin_city}${lane.origin_country ? ', ' + lane.origin_country : ''}`,
+      destinationPort: lane.destination_port || `${lane.destination_city}${lane.destination_country ? ', ' + lane.destination_country : ''}`,
+      mode: 'FCL',
+      containers: lane.equipment_type ? [{ size: lane.equipment_type, qty: lane.quantity || 1 }] : undefined,
     });
     setDispatchOpen(true);
   };
