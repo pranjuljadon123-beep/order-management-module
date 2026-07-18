@@ -7,7 +7,7 @@
  * Persists to localStorage so mutations survive reloads.
  */
 
-const STORAGE_KEY = "daistrix.mockdb.v1";
+const STORAGE_KEY = "daistrix.mockdb.v2";
 const AUTH_KEY = "daistrix.mockauth.v1";
 
 type Row = Record<string, any>;
