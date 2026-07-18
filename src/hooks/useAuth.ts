@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { AuthSession, AuthUser } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { User, Session } from '@supabase/supabase-js';
+
+type User = AuthUser;
+type Session = AuthSession;
 
 export interface Profile {
   id: string;
