@@ -384,7 +384,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
         <span>→ RFQ Details</span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 [&_label]:flex [&_label]:min-h-[1.5rem] [&_label]:items-end [&_label]:leading-tight">
         <FormField
           control={form.control}
           name="title"
@@ -631,7 +631,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
           </div>
 
           {auctionConfig.rankingLogic === 'weighted_score' && (
-            <div className="grid gap-4 sm:grid-cols-2 rounded-lg border border-border/50 p-4 bg-background/50">
+            <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 rounded-lg border border-border/50 p-4 bg-background/50 [&_label]:flex [&_label]:min-h-[1.5rem] [&_label]:items-end [&_label]:leading-tight">
               <div>
                 <Label className="text-sm">Price Weight (%)</Label>
                 <Input
@@ -781,7 +781,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {step === 1 ? 'Create New Auction RFQ' : `Step ${step} of 5`}
@@ -921,7 +921,7 @@ function LaneFormSection({ form, index, isSpot, fieldsLength, onRemove, shippers
       </div>
 
       {/* Lane-level Shipper/Consignee (optional override) */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end [&_label]:text-xs [&_label]:leading-tight [&_button]:h-9 [&_input]:h-9">
         <FormField
           control={form.control}
           name={`lanes.${index}.shipper_id`}
@@ -985,7 +985,7 @@ function LaneFormSection({ form, index, isSpot, fieldsLength, onRemove, shippers
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 xl:grid-cols-4 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end [&_label]:gap-1 [&_label]:text-xs [&_label]:leading-tight [&_input]:h-9 [&_button]:h-9">
         <FormField
           control={form.control}
           name={`lanes.${index}.origin_city`}

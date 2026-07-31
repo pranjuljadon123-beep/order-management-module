@@ -34,7 +34,7 @@ export function LaneDimensionsSection({ form, laneIndex, isSpot }: LaneDimension
       </div>
 
       {/* Weight, Volume, Quantity Row */}
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+      <div className="grid gap-x-3 gap-y-3 grid-cols-2 sm:grid-cols-4 [&_label]:flex [&_label]:min-h-[1.75rem] [&_label]:items-end [&_label]:gap-1 [&_label]:text-xs [&_label]:leading-tight">
         <FormField
           control={form.control}
           name={`lanes.${laneIndex}.weight_value`}
@@ -133,13 +133,13 @@ export function LaneDimensionsSection({ form, laneIndex, isSpot }: LaneDimension
       </div>
 
       {/* Package & Dimensions Row */}
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-5">
+      <div className="grid gap-x-3 gap-y-3 grid-cols-2 sm:grid-cols-5 items-end">
         <FormField
           control={form.control}
           name={`lanes.${laneIndex}.package_type`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-xs">Package</FormLabel>
+              <FormLabel className="flex min-h-[1.75rem] items-end text-xs leading-tight">Package</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-8 text-sm">
@@ -160,11 +160,11 @@ export function LaneDimensionsSection({ form, laneIndex, isSpot }: LaneDimension
         />
 
         <div className="col-span-1 sm:col-span-4">
-          <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex min-h-[1.75rem] items-end gap-1.5 pb-2">
             <Ruler className="h-3 w-3 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Dimensions (L × W × H)</span>
           </div>
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-4 gap-2">
             <FormField
               control={form.control}
               name={`lanes.${laneIndex}.dimensions_length`}
