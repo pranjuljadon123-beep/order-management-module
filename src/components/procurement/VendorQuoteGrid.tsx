@@ -145,7 +145,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const anyConfirmed = rateValues.length > 0;
 
   /** Opens the confirmation modal — confirmation is never a one-click action. */
-  const openConfirm = (quote: Quote, rank: number) => {
+  const openConfirm = (quote: Quote, rank: number, intent: 'confirm' | 'dispatch' = 'confirm') => {
     if (!bidsClosed) {
       toast.error('Bidding is still open', {
         description: 'You can confirm a vendor only after the bid window has closed.',
@@ -153,7 +153,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
       return;
     }
     setAllocQty(String(allocation.remaining || 1));
-    setConfirmTarget({ quote, rank });
+    setConfirmTarget({ quote, rank, intent });
   };
 
   const runConfirm = async (thenDispatch: boolean) => {
