@@ -746,7 +746,7 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill, onCreated }:
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={submit} disabled={!canSubmit} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Button onClick={submit} disabled={!canSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Create Dispatch
             </Button>
           </div>

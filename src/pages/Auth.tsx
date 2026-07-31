@@ -118,7 +118,7 @@ const Auth = () => {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full bg-accent hover:bg-accent/90"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={signIn.isPending}
                   >
                     {signIn.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -169,7 +169,7 @@ const Auth = () => {
                       <Button
                         type="button"
                         variant={signUpRole === 'buyer' ? 'default' : 'outline'}
-                        className={signUpRole === 'buyer' ? 'bg-accent hover:bg-accent/90' : ''}
+                        className={signUpRole === 'buyer' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}
                         onClick={() => setSignUpRole('buyer')}
                       >
                         <Users className="mr-2 h-4 w-4" />
@@ -178,7 +178,7 @@ const Auth = () => {
                       <Button
                         type="button"
                         variant={signUpRole === 'vendor' ? 'default' : 'outline'}
-                        className={signUpRole === 'vendor' ? 'bg-accent hover:bg-accent/90' : ''}
+                        className={signUpRole === 'vendor' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}
                         onClick={() => setSignUpRole('vendor')}
                       >
                         <Ship className="mr-2 h-4 w-4" />
@@ -215,7 +215,7 @@ const Auth = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-accent hover:bg-accent/90"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={signUp.isPending || (signUpRole === 'vendor' && !signUpCarrier)}
                   >
                     {signUp.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

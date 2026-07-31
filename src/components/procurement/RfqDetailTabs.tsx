@@ -93,7 +93,7 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
             </Button>
             <Button
               size="sm"
-              className="gap-2 bg-accent hover:bg-accent/90"
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={handleDownloadAll}
             >
               <Download className="h-4 w-4" />

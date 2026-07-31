@@ -269,7 +269,7 @@ export function VendorBidPanel({
                 <Button
                   type="submit"
                   size="sm"
-                  className="flex-1 bg-accent hover:bg-accent/90"
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                   disabled={submitBid.isPending}
                 >
                   {submitBid.isPending ? (
@@ -288,7 +288,7 @@ export function VendorBidPanel({
           <Button
             className={cn(
               "w-full",
-              canBid ? "bg-accent hover:bg-accent/90" : "bg-muted text-muted-foreground"
+              canBid ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted text-muted-foreground"
             )}
             disabled={!canBid}
             onClick={() => setShowForm(true)}

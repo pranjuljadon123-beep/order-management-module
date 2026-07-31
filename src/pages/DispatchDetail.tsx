@@ -121,7 +121,7 @@ export default function DispatchDetail() {
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            <Button className="gap-2 bg-accent hover:bg-accent/90" onClick={goToTrack}>
+            <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90" onClick={goToTrack}>
               <Radar className="h-4 w-4" />
               Go to DxTrack
             </Button>

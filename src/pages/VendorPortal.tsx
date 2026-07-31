@@ -233,7 +233,7 @@ function RfqCard({ rfq, statusConfig, modeLabels, onAccept, onView, isPending }:
           )}
           <Button 
             size="sm" 
-            className="bg-accent hover:bg-accent/90"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={onView}
           >
             {isPending ? 'View Details' : 'Submit Quote'}
