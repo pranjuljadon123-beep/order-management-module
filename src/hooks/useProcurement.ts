@@ -78,6 +78,13 @@ export function useCreateRfq() {
       // Generate RFQ number
       const { data: rfqNumber } = await supabase.rpc('generate_rfq_number');
       
+      const anyInput = input as any;
+      // Total required quantity across lanes drives allocation + CLOSED transition
+      const requiredQuantity = (input.lanes || []).reduce(
+        (sum: number, l: any) => sum + (Number(l.quantity) || Number(l.container_count) || 0),
+        0
+      );
+
       // Create RFQ
       const { data: rfq, error: rfqError } = await supabase
         .from('rfqs')
@@ -92,7 +99,18 @@ export function useCreateRfq() {
           valid_from: input.valid_from,
           valid_to: input.valid_to,
           notes: input.notes,
-          status: 'draft',
+          // The record only exists once "Create RFQ" is clicked — and it starts OPEN.
+          status: 'published',
+          workflow_status: 'OPEN',
+          status_changed_at: new Date().toISOString(),
+          rfq_type: anyInput.rfq_type || 'spot',
+          pick_drop: anyInput.pick_drop || null,
+          type: anyInput.type || null,
+          required_quantity: requiredQuantity,
+          allocated_quantity: 0,
+          team: anyInput.team || null,
+          po_number: anyInput.po_number || null,
+          customs: anyInput.customs || null,
         })
         .select()
         .single();

@@ -1,20 +1,33 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, Circle, AlertCircle, Ship, Plane, Truck, Train, Warehouse, Package as PackageIcon, Upload } from 'lucide-react';
+import { CheckCircle2, Circle, AlertCircle, Ship, Plane, Truck, Train, Warehouse, Package as PackageIcon, Upload, Lock } from 'lucide-react';
 import { useDispatches } from '@/hooks/useTeamsUsers';
 import { useShippers, useConsignees, useCustomers } from '@/hooks/useEntities';
+import { getIncotermRule, isContainerMode } from '@/lib/rfqWorkflow';
+import type { DispatchQuote } from '@/hooks/useTeamsUsers';
 import { toast } from 'sonner';
 
 interface CreateDispatchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  prefill?: Partial<DispatchForm> & { vendor?: string; rfqId?: string; quoteId?: string; laneId?: string };
+  prefill?: Partial<DispatchForm> & {
+    vendor?: string;
+    rfqId?: string;
+    rfqNumber?: string;
+    quoteId?: string;
+    laneId?: string;
+    quotes?: Omit<DispatchQuote, 'id' | 'confirmedAt'>[];
+  };
+  onCreated?: (dispatchId: string) => void;
 }
 
 interface DispatchForm {
@@ -56,6 +69,8 @@ interface DispatchForm {
   rfqId?: string;
   quoteId?: string;
   laneId?: string;
+  rfqNumber?: string;
+  requiredCharges?: string[];
 }
 
 const empty: DispatchForm = {
@@ -94,6 +109,7 @@ const empty: DispatchForm = {
   etd: '',
   containerNumber: '',
   vesselName: '',
+  requiredCharges: [],
 };
 
 const modes = [
@@ -118,15 +134,65 @@ const steps = [
   { key: 'custom',      label: 'Custom Fields', required: false },
 ] as const;
 
-export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDispatchDialogProps) {
+/** Read-only, visually muted field for data inherited from the RFQ/confirmation stage. */
+function LockedField({ label, value, className }: { label: string; value?: string; className?: string }) {
+  return (
+    <div className={className}>
+      <Label className="flex items-center gap-1.5 text-muted-foreground">
+        <Lock className="h-3 w-3" />
+        {label}
+      </Label>
+      <div className="mt-2 flex h-10 items-center rounded-md border border-dashed border-border bg-muted/50 px-3 text-sm text-muted-foreground">
+        <span className="truncate">{value || '—'}</span>
+      </div>
+    </div>
+  );
+}
+
+export function CreateDispatchDialog({ open, onOpenChange, prefill, onCreated }: CreateDispatchDialogProps) {
   const [form, setForm] = useState<DispatchForm>({ ...empty, ...prefill });
   const [active, setActive] = useState<string>('reference');
+  const navigate = useNavigate();
   const { addDispatch } = useDispatches();
   const { data: shippers = [] } = useShippers();
   const { data: consignees = [] } = useConsignees();
   const { data: customers = [] } = useCustomers();
 
+  // Everything captured during the RFQ stage arrives pre-filled and locked.
+  const inherited = useMemo(() => {
+    const keys = new Set<string>();
+    Object.entries(prefill || {}).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)) return;
+      keys.add(k);
+    });
+    return keys;
+  }, [prefill]);
+
+  const isLocked = (key: string) => inherited.has(key);
+
+  useEffect(() => {
+    if (open) {
+      setForm({ ...empty, ...prefill });
+      setActive('reference');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefill]);
+
   const patch = (p: Partial<DispatchForm>) => setForm(f => ({ ...f, ...p }));
+
+  const incotermRule = getIncotermRule(form.incoterm);
+  const chargeOptions = incotermRule
+    ? [
+        ...incotermRule.origin.map(c => `Origin: ${c}`),
+        ...incotermRule.destination.map(c => `Destination: ${c}`),
+      ]
+    : [];
+  const toggleCharge = (c: string) =>
+    patch({
+      requiredCharges: (form.requiredCharges || []).includes(c)
+        ? (form.requiredCharges || []).filter(x => x !== c)
+        : [...(form.requiredCharges || []), c],
+    });
 
   const stepStatus = useMemo(() => ({
     reference:   form.poNumber && form.vendor ? 'done' : 'pending',
@@ -148,12 +214,14 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
     }
     const d = addDispatch({
       rfqId: form.rfqId,
+      rfqNumber: form.rfqNumber,
       quoteId: form.quoteId,
       laneId: form.laneId,
       vendor: form.vendor,
       mode: form.mode,
       type: form.type,
       incoterm: form.incoterm,
+      pickDrop: form.pickDrop,
       originPort: form.originPort,
       destinationPort: form.destinationPort,
       containers: form.containers,
@@ -166,10 +234,22 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
       consignee: form.consignee,
       customer: form.customer,
       poNumber: form.poNumber,
+      team: form.team,
+      customs: form.customs,
+      originAddress: form.originAddress,
+      destinationAddress: form.destinationAddress,
+      stuffingLocation: form.stuffingLocation,
+      destuffingLocation: form.destuffingLocation,
+      requiredCharges: form.requiredCharges,
       cargoValue: parseFloat(form.cargoValue) || 0,
       cargoCurrency: form.cargoCurrency,
       executionMonth: form.executionMonth,
       additionalNotes: form.additionalNotes,
+      quotes: (prefill?.quotes || []).map((q, i) => ({
+        ...q,
+        id: `dq${Date.now()}${i}`,
+        confirmedAt: new Date().toISOString(),
+      })),
       customFields: {
         mbl: form.mbl,
         hbl: form.hbl,
@@ -185,6 +265,8 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
     onOpenChange(false);
     setForm({ ...empty });
     setActive('reference');
+    if (onCreated) onCreated(d.id);
+    else navigate(`/dispatch/${d.id}`);
   };
 
   return (
@@ -224,32 +306,68 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
           <div className="flex-1 overflow-y-auto p-8 space-y-8">
             {active === 'reference' && (
               <section className="space-y-6">
+                {prefill?.rfqNumber && (
+                  <div className="flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
+                    <Lock className="h-4 w-4 text-accent shrink-0" />
+                    <span>
+                      Inherited from <span className="font-semibold">{prefill.rfqNumber}</span> — locked fields were
+                      captured during the RFQ and confirmation steps and cannot be re-typed here.
+                    </span>
+                  </div>
+                )}
                 <div>
-                  <Label>Select Team *</Label>
-                  <Select value={form.team} onValueChange={v => patch({ team: v })}>
-                    <SelectTrigger className="mt-2 max-w-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Demo USD">Demo USD</SelectItem>
-                      <SelectItem value="Demo INR">Demo INR</SelectItem>
-                      <SelectItem value="Daistrix US">Daistrix US</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  {isLocked('team') ? (
+                    <LockedField label="Select Team" value={form.team} className="max-w-sm" />
+                  ) : (
+                    <>
+                      <Label>Select Team *</Label>
+                      <Select value={form.team} onValueChange={v => patch({ team: v })}>
+                        <SelectTrigger className="mt-2 max-w-sm"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Demo USD">Demo USD</SelectItem>
+                          <SelectItem value="Demo INR">Demo INR</SelectItem>
+                          <SelectItem value="Daistrix US">Daistrix US</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </>
+                  )}
                 </div>
                 <h3 className="text-sm font-semibold tracking-wider">REFERENCE</h3>
                 <div className="grid grid-cols-3 gap-6">
-                  <div>
-                    <Label>PI No., Order No. *</Label>
-                    <Input className="mt-2" value={form.poNumber} onChange={e => patch({ poNumber: e.target.value })} placeholder="e.g. PO-2026-0042" />
-                  </div>
-                  <div>
-                    <Label>Select Vendor *</Label>
-                    <Input className="mt-2" value={form.vendor} onChange={e => patch({ vendor: e.target.value })} placeholder="Carrier / forwarder" />
-                  </div>
+                  {isLocked('poNumber') ? (
+                    <LockedField label="PI No., Order No." value={form.poNumber} />
+                  ) : (
+                    <div>
+                      <Label>PI No., Order No. *</Label>
+                      <Input className="mt-2" value={form.poNumber} onChange={e => patch({ poNumber: e.target.value })} placeholder="e.g. PO-2026-0042" />
+                    </div>
+                  )}
+                  {isLocked('vendor') ? (
+                    <LockedField label="Vendor (confirmed quote)" value={form.vendor} />
+                  ) : (
+                    <div>
+                      <Label>Select Vendor *</Label>
+                      <Input className="mt-2" value={form.vendor} onChange={e => patch({ vendor: e.target.value })} placeholder="Carrier / forwarder" />
+                    </div>
+                  )}
                   <div>
                     <Label>Select Customs</Label>
                     <Input className="mt-2" value={form.customs} onChange={e => patch({ customs: e.target.value })} placeholder="Customs broker" />
                   </div>
                 </div>
+                {(prefill?.quotes?.length ?? 0) > 0 && (
+                  <div className="rounded-lg border p-4 space-y-2">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground">Confirmed quotes carried over</p>
+                    {prefill!.quotes!.map((q, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm">
+                        <span className="font-medium">{q.vendor}</span>
+                        <span className="text-muted-foreground">
+                          {q.allocatedQuantity} unit(s) · {q.rate.toLocaleString()} {q.currency}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
 
@@ -294,6 +412,13 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
             {active === 'mode' && (
               <section className="space-y-6">
                 <h3 className="text-sm font-semibold tracking-wider">MODE</h3>
+                {isLocked('mode') ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <LockedField label="Mode" value={form.mode} className="w-48" />
+                    <LockedField label="Type" value={form.cargoType} className="w-48" />
+                  </div>
+                ) : (
+                <>
                 <div className="flex flex-wrap gap-3">
                   {modes.map(m => {
                     const active = form.mode === m.key;
@@ -327,6 +452,27 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                     </Select>
                   </div>
                 </div>
+                </>
+                )}
+                {!isContainerMode(form.mode) ? (
+                  <p className="text-sm text-muted-foreground">
+                    {form.mode} is a weight &amp; volume mode — container details are not applicable. Capture the
+                    chargeable weight and volume in the next step.
+                  </p>
+                ) : isLocked('containers') ? (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5 text-muted-foreground">
+                      <Lock className="h-3 w-3" /> Containers (from confirmed allocation)
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {form.containers.map((c, i) => (
+                        <Badge key={i} variant="outline" className="border-dashed text-muted-foreground">
+                          {c.qty} × {c.size}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
                 <div className="space-y-3">
                   <Label>Add Containers</Label>
                   {form.containers.map((c, i) => (
@@ -360,6 +506,7 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                     + Add Container
                   </Button>
                 </div>
+                )}
               </section>
             )}
 
@@ -368,7 +515,11 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                 <h3 className="text-sm font-semibold tracking-wider">WEIGHT & VOLUME</h3>
                 <div className="grid grid-cols-3 gap-6 max-w-3xl">
                   <div>
-                    <Label>Weight per {form.containers[0]?.size || '20ft'}</Label>
+                    <Label>
+                      {isContainerMode(form.mode)
+                        ? `Weight per ${form.containers[0]?.size || '20ft'}`
+                        : 'Total Chargeable Weight'}
+                    </Label>
                     <div className="flex gap-2 mt-2">
                       <Input value={form.weight} onChange={e => patch({ weight: e.target.value })} placeholder="25000" />
                       <Select value={form.weightUnit} onValueChange={v => patch({ weightUnit: v })}>
@@ -382,7 +533,11 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                     </div>
                   </div>
                   <div>
-                    <Label>Volume per {form.containers[0]?.size || '20ft'}</Label>
+                    <Label>
+                      {isContainerMode(form.mode)
+                        ? `Volume per ${form.containers[0]?.size || '20ft'}`
+                        : 'Total Volume'}
+                    </Label>
                     <div className="flex gap-2 mt-2">
                       <Input value={form.volume} onChange={e => patch({ volume: e.target.value })} placeholder="0" />
                       <Select value={form.volumeUnit} onValueChange={v => patch({ volumeUnit: v })}>
@@ -413,6 +568,7 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
               <section className="space-y-6">
                 <h3 className="text-sm font-semibold tracking-wider">ADDRESS & SERVICES</h3>
                 <div className="grid grid-cols-3 gap-6">
+                  {isLocked('type') ? <LockedField label="Type" value={form.type} /> : (
                   <div>
                     <Label>Type *</Label>
                     <Select value={form.type} onValueChange={v => patch({ type: v })}>
@@ -423,7 +579,8 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                         <SelectItem value="Domestic">Domestic</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div>)}
+                  {isLocked('incoterm') ? <LockedField label="Incoterm" value={form.incoterm} /> : (
                   <div>
                     <Label>Incoterm *</Label>
                     <Select value={form.incoterm} onValueChange={v => patch({ incoterm: v })}>
@@ -432,7 +589,8 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                         {['EXW','FCA','FAS','FOB','CFR','CIF','CPT','CIP','DAP','DPU','DDP'].map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div>)}
+                  {isLocked('pickDrop') ? <LockedField label="Pick & Drop" value={form.pickDrop} /> : (
                   <div>
                     <Label>Pick &amp; Drop *</Label>
                     <Select value={form.pickDrop} onValueChange={v => patch({ pickDrop: v })}>
@@ -444,13 +602,41 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                         <SelectItem value="DOOR TO DOOR">Door → Door</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div>)}
                 </div>
+
+                {/* Required charges — operational confirmations at dispatch time */}
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold">Required Charges</h4>
+                    <Badge variant="outline">{form.incoterm}</Badge>
+                  </div>
+                  {chargeOptions.length === 0 ? (
+                    <p className="text-sm text-warning">Please select an incoterm to load the applicable services.</p>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground">{incotermRule?.note}</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {chargeOptions.map(c => (
+                          <label key={c} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={(form.requiredCharges || []).includes(c)}
+                              onCheckedChange={() => toggleCharge(c)}
+                            />
+                            <span>{c}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-3 gap-6">
+                  {isLocked('originPort') ? <LockedField label="Origin Port" value={form.originPort} /> : (
                   <div>
                     <Label>Origin Port *</Label>
                     <Input className="mt-2" value={form.originPort} onChange={e => patch({ originPort: e.target.value })} placeholder="JNPT (Nhava Sheva), Mumbai, India" />
-                  </div>
+                  </div>)}
                   <div>
                     <Label>Origin Address</Label>
                     <Input className="mt-2" value={form.originAddress} onChange={e => patch({ originAddress: e.target.value })} placeholder="Please update origin address" />
@@ -461,10 +647,11 @@ export function CreateDispatchDialog({ open, onOpenChange, prefill }: CreateDisp
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-6">
+                  {isLocked('destinationPort') ? <LockedField label="Destination Port" value={form.destinationPort} /> : (
                   <div>
                     <Label>Destination Port *</Label>
                     <Input className="mt-2" value={form.destinationPort} onChange={e => patch({ destinationPort: e.target.value })} placeholder="Djibouti, DJJIB" />
-                  </div>
+                  </div>)}
                   <div>
                     <Label>Destination Address</Label>
                     <Input className="mt-2" value={form.destinationAddress} onChange={e => patch({ destinationAddress: e.target.value })} placeholder="Please update destination address" />
