@@ -61,7 +61,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
   const [detailQuote, setDetailQuote] = useState<Quote | null>(null);
   const [showCharges, setShowCharges] = useState(true);
-  const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number } | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number; intent?: 'confirm' | 'dispatch' } | null>(null);
   const [allocQty, setAllocQty] = useState('1');
 
   const rfqRecord = rfq ?? { status: rfqStatus, bid_deadline: bidDeadline };
@@ -145,7 +145,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const anyConfirmed = rateValues.length > 0;
 
   /** Opens the confirmation modal — confirmation is never a one-click action. */
-  const openConfirm = (quote: Quote, rank: number) => {
+  const openConfirm = (quote: Quote, rank: number, intent: 'confirm' | 'dispatch' = 'confirm') => {
     if (!bidsClosed) {
       toast.error('Bidding is still open', {
         description: 'You can confirm a vendor only after the bid window has closed.',
@@ -153,7 +153,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
       return;
     }
     setAllocQty(String(allocation.remaining || 1));
-    setConfirmTarget({ quote, rank });
+    setConfirmTarget({ quote, rank, intent });
   };
 
   const runConfirm = async (thenDispatch: boolean) => {
@@ -543,7 +543,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           className="text-xs min-w-0 px-2"
                           onClick={() => toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`)}
                         >
-                          Reconfirm
+                          Reconfirm Quote
                         </Button>
                         <Button
                           size="sm"
@@ -551,7 +551,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           onClick={() => openDispatch(quote, carrier)}
                         >
                           <Truck className="h-3 w-3 mr-1 shrink-0" />
-                          Dispatch
+                          <span className="truncate">Create Dispatch</span>
                         </Button>
                       </div>
                     ) : canAward ? (
@@ -567,14 +567,23 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           ) : (
                             <>
                               <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
-                              <span className="truncate">Confirm</span>
+                              <span className="truncate">Confirm Quote</span>
                             </>
                           )}
                         </Button>
                         <Button
                           size="sm"
+                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
+                          onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1, 'dispatch')}
+                          disabled={confirmQuote.isPending}
+                        >
+                          <Truck className="h-3 w-3 mr-1 shrink-0" />
+                          <span className="truncate">Create Dispatch</span>
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="outline"
-                          className="text-xs min-w-0 px-2"
+                          className="text-xs min-w-0 px-2 col-span-2"
                           onClick={() => toast.info('Negotiation thread opened', { description: `Sending counter-offer request to ${carrier?.name ?? 'vendor'}.` })}
                         >
                           Negotiate
@@ -604,7 +613,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" className="text-xs min-w-0 px-2">
-                            More
+                            <span className="truncate">More Options</span>
                             <ChevronDown className="h-3 w-3 ml-1 shrink-0" />
                           </Button>
                         </DropdownMenuTrigger>
