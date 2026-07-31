@@ -69,9 +69,11 @@
     
     --success: 152 69% 31%;
     --success-light: 152 50% 92%;
+    --success-foreground: 0 0% 100%;
     
     --warning: 38 92% 50%;
     --warning-light: 38 90% 92%;
+    --warning-foreground: 30 40% 12%;
     
     --info: 244 100% 69%;
     --info-light: 251 91% 95%;
