@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useAuctionRfqs, useUpdateAuctionStatus } from '@/hooks/useAuction';
+import { useRfqBackgroundJobs, useSetRfqWorkflowStatus } from '@/hooks/useRfqLifecycle';
+import { deriveRfqStatus, RFQ_STATUS_FILTERS } from '@/lib/rfqWorkflow';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,12 +89,22 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
 
   const { data: rfqs, isLoading } = useAuctionRfqs();
   const updateStatus = useUpdateAuctionStatus();
+  const setWorkflowStatus = useSetRfqWorkflowStatus();
+  // Background job: expire bid windows and archive terminal RFQs.
+  useRfqBackgroundJobs(true);
 
-  const filteredRfqs = (rfqs || []).filter((rfq) => {
+  const withStatus = (rfqs || []).map((rfq) => ({ rfq, derived: deriveRfqStatus(rfq as any) }));
+  const bucketCount = (key: string) => {
+    const bucket = RFQ_STATUS_FILTERS.find((b) => b.key === key)!;
+    return withStatus.filter((r) => bucket.match(r.derived)).length;
+  };
+
+  const activeBucket = RFQ_STATUS_FILTERS.find((b) => b.key === statusFilter) ?? RFQ_STATUS_FILTERS[0];
+  const filteredRfqs = withStatus.filter(({ rfq, derived }) => {
     const matchesSearch =
       rfq.rfq_number.toLowerCase().includes(search.toLowerCase()) ||
       rfq.title.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || rfq.auction_status === statusFilter;
+    const matchesStatus = activeBucket.match(derived);
     const matchesType = typeFilter === 'all' || rfq.rfq_type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
