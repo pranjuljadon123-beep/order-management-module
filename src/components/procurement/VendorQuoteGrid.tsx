@@ -68,10 +68,15 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const derived = deriveRfqStatus(rfqRecord);
   const bidsOpen = derived.bidsOpen;
   const bidsClosed = !bidsOpen;
-  const allocation = computeAllocation(
-    Number(rfqRecord.required_quantity) || Number(lane.quantity) || 0,
-    Number(rfqRecord.allocated_quantity) || 0
-  );
+  // Required quantity can come from the RFQ, the lane, or (for seeded/legacy data)
+  // be parsed out of the lane's estimated volume string e.g. "40 units".
+  const parsedLaneVolume = parseInt(String(lane.estimated_volume ?? '').replace(/[^0-9]/g, ''), 10);
+  const requiredQty =
+    Number(rfqRecord.required_quantity) ||
+    Number(lane.quantity) ||
+    (Number.isFinite(parsedLaneVolume) ? parsedLaneVolume : 0) ||
+    1;
+  const allocation = computeAllocation(requiredQty, Number(rfqRecord.allocated_quantity) || 0);
 
   const dispatchForQuote = (quoteId: string) =>
     dispatches.find((d) => d.quoteId === quoteId);
@@ -536,18 +541,18 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <span className="truncate">Dispatch Created</span>
                       </Button>
                     ) : isConfirmed ? (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs min-w-0 px-2"
+                          className="w-full text-xs px-2"
                           onClick={() => toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`)}
                         >
                           Reconfirm Quote
                         </Button>
                         <Button
                           size="sm"
-                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
+                          className="w-full text-xs px-2 bg-accent hover:bg-accent/90"
                           onClick={() => openDispatch(quote, carrier)}
                         >
                           <Truck className="h-3 w-3 mr-1 shrink-0" />
@@ -555,10 +560,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         </Button>
                       </div>
                     ) : canAward ? (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-2">
                         <Button 
                           size="sm" 
-                          className="text-xs min-w-0 px-2 bg-success hover:bg-success/90"
+                          className="w-full text-xs px-2 bg-success hover:bg-success/90"
                           onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1)}
                           disabled={confirmQuote.isPending}
                         >
@@ -573,7 +578,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         </Button>
                         <Button
                           size="sm"
-                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
+                          className="w-full text-xs px-2 bg-accent hover:bg-accent/90"
                           onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1, 'dispatch')}
                           disabled={confirmQuote.isPending}
                         >
@@ -583,7 +588,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs min-w-0 px-2 col-span-2"
+                          className="w-full text-xs px-2"
                           onClick={() => toast.info('Negotiation thread opened', { description: `Sending counter-offer request to ${carrier?.name ?? 'vendor'}.` })}
                         >
                           Negotiate
