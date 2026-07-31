@@ -142,22 +142,41 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
     : null;
   const anyConfirmed = rateValues.length > 0;
 
-  const handleAward = async (quote: Quote) => {
+  /** Opens the confirmation modal — confirmation is never a one-click action. */
+  const openConfirm = (quote: Quote, rank: number) => {
     if (!bidsClosed) {
       toast.error('Bidding is still open', {
-        description: 'You can confirm a vendor only after the bid deadline has passed.',
+        description: 'You can confirm a vendor only after the bid window has closed.',
       });
       return;
     }
-    await createAward.mutateAsync({
-      rfq_id: rfqId,
-      lane_id: lane.id,
-      quote_id: quote.id,
-      carrier_id: quote.carrier_id,
-      awarded_rate: quote.total_landed_cost || quote.base_freight_rate,
+    setAllocQty(String(allocation.remaining || 1));
+    setConfirmTarget({ quote, rank });
+  };
+
+  const runConfirm = async (thenDispatch: boolean) => {
+    if (!confirmTarget) return;
+    const qty = parseInt(allocQty, 10);
+    const problem = validateAllocation(qty, allocation);
+    if (problem) return toast.error(problem);
+
+    const quote = confirmTarget.quote;
+    const res = await confirmQuote.mutateAsync({
+      rfqId,
+      laneId: lane.id,
+      quoteId: quote.id,
+      carrierId: quote.carrier_id,
+      awardedRate: quote.total_landed_cost || quote.base_freight_rate,
       currency: quote.currency,
+      allocatedQuantity: qty,
     });
-    toast.success('Vendor confirmed — proceed to create dispatch');
+    toast.success(
+      res.fully
+        ? 'Fully allocated — RFQ closed. Create the dispatch to hand over to operations.'
+        : `Confirmed ${qty} unit(s). ${res.required - res.nextAllocated} still open for other vendors.`
+    );
+    setConfirmTarget(null);
+    if (thenDispatch) openDispatch(quote, quote.carrier as Carrier, qty);
   };
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
