@@ -104,6 +104,13 @@ interface ExtendedRfqInput extends Omit<CreateRfqInput, 'lanes'> {
   quantity?: number;
 }
 
+const PICK_DROP_OPTIONS = [
+  'PORT (ORIGIN) TO PORT (DESTINATION)',
+  'DOOR (ORIGIN) TO PORT (DESTINATION)',
+  'PORT (ORIGIN) TO DOOR (DESTINATION)',
+  'DOOR (ORIGIN) TO DOOR (DESTINATION)',
+];
+
 export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [rfqType, setRfqType] = useState<RfqType | null>(null);
