@@ -543,7 +543,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           className="text-xs min-w-0 px-2"
                           onClick={() => toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`)}
                         >
-                          Reconfirm
+                          Reconfirm Quote
                         </Button>
                         <Button
                           size="sm"
@@ -551,7 +551,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           onClick={() => openDispatch(quote, carrier)}
                         >
                           <Truck className="h-3 w-3 mr-1 shrink-0" />
-                          Dispatch
+                          <span className="truncate">Create Dispatch</span>
                         </Button>
                       </div>
                     ) : canAward ? (
@@ -567,14 +567,23 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           ) : (
                             <>
                               <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
-                              <span className="truncate">Confirm</span>
+                              <span className="truncate">Confirm Quote</span>
                             </>
                           )}
                         </Button>
                         <Button
                           size="sm"
+                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
+                          onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1, 'dispatch')}
+                          disabled={confirmQuote.isPending}
+                        >
+                          <Truck className="h-3 w-3 mr-1 shrink-0" />
+                          <span className="truncate">Create Dispatch</span>
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="outline"
-                          className="text-xs min-w-0 px-2"
+                          className="text-xs min-w-0 px-2 col-span-2"
                           onClick={() => toast.info('Negotiation thread opened', { description: `Sending counter-offer request to ${carrier?.name ?? 'vendor'}.` })}
                         >
                           Negotiate
