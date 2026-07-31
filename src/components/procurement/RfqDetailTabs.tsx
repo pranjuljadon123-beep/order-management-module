@@ -13,6 +13,7 @@ import {
 import { VendorQuoteGrid } from './VendorQuoteGrid';
 import { RfqEnquiryDetails } from './RfqEnquiryDetails';
 import { AwardsPanel } from './AwardsPanel';
+import { isFreightNotRequired } from '@/lib/rfqWorkflow';
 import type { Rfq, RfqLane } from '@/types/procurement';
 import { toast } from 'sonner';
 
@@ -22,7 +23,29 @@ interface RfqDetailTabsProps {
   isVendor?: boolean;
 }
 
+/** Rendered instead of the quoting flow when the incoterm puts main carriage on the counterparty. */
+function FreightNotRequiredCard({ incoterm }: { incoterm?: string }) {
+  return (
+    <div className="glass-card rounded-xl p-10 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+        <Truck className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold">Freight Not Required</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        Under <span className="font-medium text-foreground">{incoterm}</span> the main carriage is arranged by the
+        counterparty, so no vendor quoting is needed for this RFQ. Use the Enquiry &amp; Other Details tab to review
+        the agreed scope, or the Dispatch tab to hand execution over to operations.
+      </p>
+    </div>
+  );
+}
+
 export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsProps) {
+  const freightNotRequired = isFreightNotRequired(
+    (rfq as any).incoterms,
+    (rfq as any).pick_drop
+  );
+
   const handleDownloadAll = () => {
     const rows = [['Lane', 'Origin', 'Destination', 'Quotes']];
     lanes.forEach((l) => {
@@ -108,6 +131,9 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
       </TabsContent>
 
       <TabsContent value="vendors">
+        {freightNotRequired ? (
+          <FreightNotRequiredCard incoterm={(rfq as any).incoterms} />
+        ) : (
         <div className="glass-card rounded-xl p-6">
           <h3 className="text-lg font-semibold mb-4">Invited Vendors</h3>
           {Array.isArray((rfq as any).invited_carriers) && (rfq as any).invited_carriers.length > 0 ? (
@@ -125,10 +151,14 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
             </p>
           )}
         </div>
+        )}
       </TabsContent>
 
       <TabsContent value="quotes">
-        {lanes.map((lane) => (
+        {freightNotRequired ? (
+          <FreightNotRequiredCard incoterm={(rfq as any).incoterms} />
+        ) : (
+          lanes.map((lane) => (
           <VendorQuoteGrid 
             key={lane.id} 
             lane={lane} 
@@ -138,7 +168,8 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
             isVendor={isVendor}
             bidDeadline={rfq.bid_deadline}
           />
-        ))}
+          ))
+        )}
       </TabsContent>
 
       <TabsContent value="dispatch">

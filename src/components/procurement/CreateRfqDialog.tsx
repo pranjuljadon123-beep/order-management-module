@@ -3,6 +3,8 @@ import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form
 import { useCreateRfq } from '@/hooks/useProcurement';
 import { useShippers, useConsignees, getEntityAddress, getEntityPort } from '@/hooks/useEntities';
 import { VendorSelectionSection } from './VendorSelectionSection';
+import { RequiredChargesSection } from './RequiredChargesSection';
+import { isContainerMode, CONTAINER_SIZES } from '@/lib/rfqWorkflow';
 import {
   Dialog,
   DialogContent,
@@ -91,6 +93,10 @@ interface ExtendedLaneInput {
 interface ExtendedRfqInput extends Omit<CreateRfqInput, 'lanes'> {
   lanes: ExtendedLaneInput[];
   po_number?: string;
+  pick_drop?: string;
+  required_charges?: string[];
+  container_count?: number;
+  container_size?: string;
   so_number?: string;
   customer_id?: string;
   shipper_id?: string;
@@ -103,6 +109,14 @@ interface ExtendedRfqInput extends Omit<CreateRfqInput, 'lanes'> {
   volume_cbm?: number;
   quantity?: number;
 }
+
+
+const PICK_DROP_OPTIONS = [
+  'PORT (ORIGIN) TO PORT (DESTINATION)',
+  'DOOR (ORIGIN) TO PORT (DESTINATION)',
+  'PORT (ORIGIN) TO DOOR (DESTINATION)',
+  'DOOR (ORIGIN) TO DOOR (DESTINATION)',
+];
 
 export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
@@ -128,6 +142,10 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       title: '',
       mode: 'ocean_fcl',
       incoterms: 'FOB',
+      pick_drop: PICK_DROP_OPTIONS[0],
+      required_charges: [],
+      container_count: undefined,
+      container_size: '40ft',
       contract_duration_months: 12,
       estimated_annual_volume: '',
       bid_deadline: '',
@@ -212,8 +230,15 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       cargo_type: data.cargo_type,
       cargo_description: data.cargo_description,
       pickup_date: data.pickup_date || null,
+      pick_drop: (data as any).pick_drop || null,
+      required_charges: (data as any).required_charges || [],
+      container_size: (data as any).container_size || null,
+      required_quantity:
+        Number((data as any).container_count) || Number(data.quantity) || undefined,
       lanes: data.lanes.map(lane => ({
         ...lane,
+        equipment_type: lane.equipment_type || (data as any).container_size || '',
+        quantity: lane.quantity ?? Number((data as any).container_count) ?? undefined,
         shipper_id: lane.shipper_id || data.shipper_id || null,
         consignee_id: lane.consignee_id || data.consignee_id || null,
       })),
@@ -269,7 +294,13 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       id: 2,
       label: 'Reference & Consignment',
       required: true,
-      valid: !!v.title?.trim() && !!v.mode && (v.lanes || []).length > 0 && (v.lanes || []).every(laneValid),
+      valid:
+        !!v.title?.trim() &&
+        !!v.mode &&
+        !!v.incoterms &&
+        (isContainerMode(v.mode) ? !!v.container_count : true) &&
+        (v.lanes || []).length > 0 &&
+        (v.lanes || []).every(laneValid),
       touched: !!v.title?.trim() || (v.lanes || []).some((l: any) => l?.origin_city),
     },
     {
@@ -500,6 +531,133 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
             </FormItem>
           )}
         />
+      </div>
+
+      <Separator />
+
+      {/* Address & Service — incoterm + mode driven */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-semibold">Address &amp; Service</h3>
+          <p className="text-sm text-muted-foreground">
+            Service scope and the charges vendors must quote — derived from the selected incoterm.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="pick_drop"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pick &amp; Drop</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select service scope" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-popover">
+                    {PICK_DROP_OPTIONS.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {isContainerMode(form.watch('mode')) ? (
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="container_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Container Count</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="e.g. 4"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value, 10) : undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="container_size"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Container Size</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Size" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover">
+                        {CONTAINER_SIZES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="weight_value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gross Weight (KG)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 1200"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="volume_cbm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Volume (CBM)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 18"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium">Required Charges</p>
+          <RequiredChargesSection
+            incoterm={form.watch('incoterms')}
+            pickDrop={form.watch('pick_drop')}
+            value={form.watch('required_charges') || []}
+            onChange={(next) => form.setValue('required_charges', next, { shouldDirty: true })}
+          />
+        </div>
       </div>
 
       <Separator />

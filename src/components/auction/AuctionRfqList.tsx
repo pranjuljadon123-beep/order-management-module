@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useAuctionRfqs, useUpdateAuctionStatus } from '@/hooks/useAuction';
+import { useRfqBackgroundJobs, useSetRfqWorkflowStatus } from '@/hooks/useRfqLifecycle';
+import { deriveRfqStatus, RFQ_STATUS_FILTERS } from '@/lib/rfqWorkflow';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,12 +89,22 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
 
   const { data: rfqs, isLoading } = useAuctionRfqs();
   const updateStatus = useUpdateAuctionStatus();
+  const setWorkflowStatus = useSetRfqWorkflowStatus();
+  // Background job: expire bid windows and archive terminal RFQs.
+  useRfqBackgroundJobs(true);
 
-  const filteredRfqs = (rfqs || []).filter((rfq) => {
+  const withStatus = (rfqs || []).map((rfq) => ({ rfq, derived: deriveRfqStatus(rfq as any) }));
+  const bucketCount = (key: string) => {
+    const bucket = RFQ_STATUS_FILTERS.find((b) => b.key === key)!;
+    return withStatus.filter((r) => bucket.match(r.derived)).length;
+  };
+
+  const activeBucket = RFQ_STATUS_FILTERS.find((b) => b.key === statusFilter) ?? RFQ_STATUS_FILTERS[0];
+  const filteredRfqs = withStatus.filter(({ rfq, derived }) => {
     const matchesSearch =
       rfq.rfq_number.toLowerCase().includes(search.toLowerCase()) ||
       rfq.title.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || rfq.auction_status === statusFilter;
+    const matchesStatus = activeBucket.match(derived);
     const matchesType = typeFilter === 'all' || rfq.rfq_type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -118,7 +130,33 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 lg:flex-row">
+      {/* Status rail — every bucket reads the single derived RFQ status */}
+      <aside className="glass-card h-fit w-full shrink-0 rounded-xl p-2 lg:w-56">
+        <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Status
+        </p>
+        <nav className="flex flex-wrap gap-1 lg:flex-col">
+          {RFQ_STATUS_FILTERS.map((bucket) => (
+            <button
+              key={bucket.key}
+              type="button"
+              onClick={() => setStatusFilter(bucket.key)}
+              className={cn(
+                'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
+                statusFilter === bucket.key
+                  ? 'bg-primary/10 font-medium text-primary'
+                  : 'text-muted-foreground hover:bg-muted'
+              )}
+            >
+              <span className="truncate">{bucket.label}</span>
+              <span className="shrink-0 rounded-full bg-muted px-2 text-xs">{bucketCount(bucket.key)}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      <div className="min-w-0 flex-1 space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -131,24 +169,9 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
           />
         </div>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover">
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="scheduled">Scheduled</SelectItem>
-            <SelectItem value="live">Live</SelectItem>
-            <SelectItem value="paused">Paused</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-            <SelectItem value="awarded">Awarded</SelectItem>
-          </SelectContent>
-        </Select>
-
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-[140px]">
+            <Filter className="mr-2 h-4 w-4" />
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent className="bg-popover">
@@ -183,9 +206,9 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredRfqs.map((rfq, index) => {
-                const auctionStatus = statusConfig[rfq.auction_status as AuctionStatus] || statusConfig.draft;
-                const StatusIcon = auctionStatus.icon;
+              filteredRfqs.map(({ rfq, derived }, index) => {
+                const StatusIcon =
+                  (statusConfig[rfq.auction_status as AuctionStatus] || statusConfig.draft).icon;
                 const ModeIcon = modeIcons[rfq.mode] || Ship;
                 const laneCount = rfq.lanes?.length || 0;
                 const bidCount = rfq.bids?.length || 0;
@@ -229,7 +252,7 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {auctionEnd && (rfq.auction_status === 'live' || rfq.auction_status === 'scheduled') ? (
+                      {auctionEnd && derived.bidsOpen ? (
                         <AuctionTimer 
                           endTime={auctionEnd} 
                           startTime={rfq.auction_config?.auction_start}
@@ -244,9 +267,9 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className={cn("status-badge whitespace-nowrap capitalize", auctionStatus.variant)}>
-                        <StatusIcon className={cn("h-3 w-3", rfq.auction_status === 'live' && "animate-pulse")} />
-                        {auctionStatus.label}
+                      <span className={cn('status-badge whitespace-nowrap', derived.className)}>
+                        <StatusIcon className={cn('h-3 w-3', derived.bidsOpen && 'animate-pulse')} />
+                        {derived.label}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -261,31 +284,33 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          {(rfq.auction_status === 'draft' || rfq.auction_status === 'scheduled') && (
-                            <DropdownMenuItem onClick={() => handleStartAuction(rfq)}>
-                              <Play className="mr-2 h-4 w-4" />
-                              Start Auction
+                          {derived.status === 'OPEN' && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setWorkflowStatus.mutate({ rfqId: rfq.id, status: 'UNDER_NEGOTIATION' })
+                              }
+                            >
+                              <Pause className="mr-2 h-4 w-4" />
+                              Move to Negotiation
                             </DropdownMenuItem>
                           )}
-                          {rfq.auction_status === 'live' && (
+                          {(derived.status === 'OPEN' || derived.status === 'UNDER_NEGOTIATION') && (
                             <>
-                              <DropdownMenuItem onClick={() => handlePauseAuction(rfq)}>
-                                <Pause className="mr-2 h-4 w-4" />
-                                Pause Auction
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCloseAuction(rfq)}>
+                              <DropdownMenuItem
+                                onClick={() => setWorkflowStatus.mutate({ rfqId: rfq.id, status: 'CLOSED' })}
+                              >
                                 <StopCircle className="mr-2 h-4 w-4" />
-                                Close Auction
+                                Close Bidding
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setWorkflowStatus.mutate({ rfqId: rfq.id, status: 'CANCELLED' })}
+                              >
+                                <AlertCircle className="mr-2 h-4 w-4" />
+                                Cancel RFQ
                               </DropdownMenuItem>
                             </>
                           )}
-                          {rfq.auction_status === 'paused' && (
-                            <DropdownMenuItem onClick={() => handleStartAuction(rfq)}>
-                              <Play className="mr-2 h-4 w-4" />
-                              Resume Auction
-                            </DropdownMenuItem>
-                          )}
-                          {rfq.auction_status === 'closed' && (
+                          {(derived.status === 'CLOSED' || derived.status === 'CONFIRMED') && (
                             <DropdownMenuItem onClick={() => onSelectRfq(rfq)}>
                               <Trophy className="mr-2 h-4 w-4" />
                               Award Lanes
@@ -300,6 +325,7 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
             )}
           </TableBody>
         </Table>
+      </div>
       </div>
     </div>
   );
