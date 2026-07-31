@@ -149,7 +149,7 @@ export function InvoiceRow({
       </div>
 
       {/* Next Approvers */}
-      <div className="hidden min-w-0 flex-1 text-xs text-muted-foreground xl:block">
+      <div className="hidden min-w-0 flex-1 text-xs text-muted-foreground 2xl:block">
         <div>Next approvers</div>
         <div className="truncate text-foreground">
           {invoice.approvers.length > 0 ? invoice.approvers.join(", ") : "—"}
@@ -157,7 +157,7 @@ export function InvoiceRow({
       </div>
 
       {/* Dates */}
-      <div className="hidden w-[130px] shrink-0 text-xs text-muted-foreground xl:block">
+      <div className="hidden w-[130px] shrink-0 text-xs text-muted-foreground 2xl:block">
         <div>Uploaded</div>
         <div className="text-foreground">{format(invoice.uploadedAt, "dd/MM/yyyy HH:mm")}</div>
       </div>

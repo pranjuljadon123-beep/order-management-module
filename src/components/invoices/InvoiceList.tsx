@@ -31,7 +31,7 @@ export function InvoiceList({
 
   return (
     <ScrollArea className="flex-1">
-      <div className="min-w-[1200px]">
+      <div className="min-w-0">
         {invoices.map((invoice) => (
           <InvoiceRow
             key={invoice.id}
