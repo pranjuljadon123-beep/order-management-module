@@ -49,7 +49,7 @@ export function InvoiceSidebar({ filter, setFilter, stats, onBulkUpload }: Invoi
   };
 
   return (
-    <div className="w-64 border-r border-border bg-card flex flex-col h-full">
+    <div className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-card">
       {/* Upload Button */}
       <div className="p-4">
         <Button 
