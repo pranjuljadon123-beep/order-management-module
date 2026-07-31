@@ -121,7 +121,7 @@ export function ShipmentCard({
       onClick={onSelect}
     >
       {/* Main Content Row */}
-      <div className="flex items-center gap-6 px-4 py-4">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3 px-4 py-4">
         {/* Favorite */}
         <Button 
           variant="ghost" 
@@ -133,7 +133,7 @@ export function ShipmentCard({
         </Button>
 
         {/* Container ID */}
-        <div className="min-w-[140px]">
+        <div className="min-w-[140px] shrink-0">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             RF: {rfNumber || "—"}
             <Users className="h-3 w-3" />
@@ -147,7 +147,7 @@ export function ShipmentCard({
         </div>
 
         {/* Carrier */}
-        <div className="min-w-[100px]">
+        <div className="min-w-[100px] shrink-0">
           <div className="text-xs text-muted-foreground">Carrier</div>
           <div className="flex items-center gap-1 font-medium text-foreground">
             {carrier.code}
@@ -156,25 +156,25 @@ export function ShipmentCard({
         </div>
 
         {/* Route */}
-        <div className="flex-1 min-w-[200px]">
-          <div className="flex items-center gap-2 text-sm">
-            <span>{getFlagEmoji(origin.countryCode)}</span>
-            <span className="text-foreground">{origin.port}, {origin.country}</span>
+        <div className="min-w-[200px] flex-1 basis-52">
+          <div className="flex items-center gap-2 text-sm min-w-0">
+            <span className="shrink-0">{getFlagEmoji(origin.countryCode)}</span>
+            <span className="truncate text-foreground">{origin.port}, {origin.country}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span>{getFlagEmoji(destination.countryCode)}</span>
-            <span className="text-foreground">{destination.port}, {destination.country}</span>
+          <div className="flex items-center gap-2 text-sm min-w-0">
+            <span className="shrink-0">{getFlagEmoji(destination.countryCode)}</span>
+            <span className="truncate text-foreground">{destination.port}, {destination.country}</span>
           </div>
         </div>
 
         {/* Consignee */}
-        <div className="min-w-[100px]">
+        <div className="min-w-[100px] shrink-0">
           <div className="text-xs text-muted-foreground">Consignee</div>
           <div className="text-sm text-foreground truncate max-w-[100px]">{consignee}</div>
         </div>
 
         {/* Carrier ETA */}
-        <div className="min-w-[100px]">
+        <div className="min-w-[100px] shrink-0">
           <div className="text-xs text-muted-foreground">Carrier ETA</div>
           <div className="text-sm text-primary underline cursor-pointer">
             {carrierEta || "No Carrier ETA"}
@@ -182,7 +182,7 @@ export function ShipmentCard({
         </div>
 
         {/* Prediction */}
-        <div className="min-w-[100px]">
+        <div className="min-w-[100px] shrink-0">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Ship className="h-3 w-3" />
             Prediction
@@ -198,12 +198,12 @@ export function ShipmentCard({
         </div>
 
         {/* Status Badge */}
-        <Badge className={cn("min-w-[80px] justify-center", statusBadge.className)}>
+        <Badge className={cn("min-w-[80px] shrink-0 justify-center whitespace-nowrap", statusBadge.className)}>
           {statusBadge.label}
         </Badge>
 
         {/* Actions */}
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="ml-auto flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Scissors className="h-4 w-4" />
           </Button>
