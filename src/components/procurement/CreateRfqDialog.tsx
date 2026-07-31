@@ -294,7 +294,13 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       id: 2,
       label: 'Reference & Consignment',
       required: true,
-      valid: !!v.title?.trim() && !!v.mode && (v.lanes || []).length > 0 && (v.lanes || []).every(laneValid),
+      valid:
+        !!v.title?.trim() &&
+        !!v.mode &&
+        !!v.incoterms &&
+        (isContainerMode(v.mode) ? !!v.container_count : true) &&
+        (v.lanes || []).length > 0 &&
+        (v.lanes || []).every(laneValid),
       touched: !!v.title?.trim() || (v.lanes || []).some((l: any) => l?.origin_city),
     },
     {
