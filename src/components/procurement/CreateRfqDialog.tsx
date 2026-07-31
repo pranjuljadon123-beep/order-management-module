@@ -35,8 +35,9 @@ import { Label } from '@/components/ui/label';
 import { 
   Plus, Trash2, Loader2, Ship, Plane, Truck, Train, 
   FileText, ScrollText, ChevronLeft, ChevronRight, 
-  Gavel, Settings2, MapPin
+  Gavel, Settings2, MapPin, CheckCircle2, AlertCircle, Circle
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { CreateRfqInput, TransportMode } from '@/types/procurement';
 import { ConsignmentDetailsSection } from './ConsignmentDetailsSection';
 import { LaneDimensionsSection } from './LaneDimensionsSection';
@@ -255,6 +256,79 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
   };
 
   const isSpot = rfqType === 'spot';
+
+  /**
+   * Per-step validation state — drives the step rail icons and gates Next/Submit.
+   * amber = required and incomplete, green = valid, gray = optional & untouched.
+   */
+  const v = form.watch();
+  const laneValid = (l: any) =>
+    !!(l?.origin_city && l?.origin_country && l?.destination_city && l?.destination_country);
+  const stepStates = [
+    {
+      id: 2,
+      label: 'Reference & Consignment',
+      required: true,
+      valid: !!v.title?.trim() && !!v.mode && (v.lanes || []).length > 0 && (v.lanes || []).every(laneValid),
+      touched: !!v.title?.trim() || (v.lanes || []).some((l: any) => l?.origin_city),
+    },
+    {
+      id: 3,
+      label: 'Vendors',
+      required: true,
+      valid: selectedVendors.length > 0,
+      touched: selectedVendors.length > 0,
+    },
+    {
+      id: 4,
+      label: 'Auction Setup',
+      required: false,
+      valid: !!auctionConfig.structure && !!auctionConfig.rankingLogic,
+      touched: true,
+    },
+    {
+      id: 5,
+      label: 'Enquiry Schedule',
+      required: true,
+      valid: !!v.bid_deadline,
+      touched: !!v.bid_deadline,
+    },
+  ];
+  const stepById = (id: number) => stepStates.find((s) => s.id === id);
+  const blockingSteps = stepStates.filter((s) => s.required && !s.valid);
+  const canGoNext = (() => {
+    const s = stepById(step);
+    return !s?.required || s.valid;
+  })();
+
+  const StepRail = () => (
+    <ol className="space-y-1">
+      {stepStates.map((s) => {
+        const state = s.valid ? 'valid' : s.required ? 'required' : 'optional';
+        return (
+          <li key={s.id}>
+            <button
+              type="button"
+              onClick={() => setStep(s.id as 2 | 3 | 4 | 5)}
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors',
+                step === s.id ? 'bg-muted font-medium' : 'hover:bg-muted/50'
+              )}
+            >
+              {state === 'valid' ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+              ) : state === 'required' ? (
+                <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
+              ) : (
+                <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
+              <span className="truncate">{s.label}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
 
   const renderStep1 = () => (
     <div className="space-y-6 py-4">
@@ -723,14 +797,27 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
-            {step === 3 && renderStep3()}
-            {step === 4 && renderStep4()}
-            {step === 5 && renderStep5()}
+            {step === 1 ? (
+              renderStep1()
+            ) : (
+              <div className="grid gap-6 md:grid-cols-[210px_1fr]">
+                <aside className="md:border-r md:pr-4">
+                  <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Steps
+                  </p>
+                  <StepRail />
+                </aside>
+                <div className="min-w-0">
+                  {step === 2 && renderStep2()}
+                  {step === 3 && renderStep3()}
+                  {step === 4 && renderStep4()}
+                  {step === 5 && renderStep5()}
+                </div>
+              </div>
+            )}
 
             {step > 1 && (
-              <div className="flex justify-between pt-4 border-t border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/50">
                 <Button 
                   type="button" 
                   variant="ghost" 
@@ -739,12 +826,19 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                
+
+                {step === 5 && blockingSteps.length > 0 && (
+                  <p className="flex items-center gap-2 text-xs text-warning">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    Complete: {blockingSteps.map((s) => s.label).join(', ')}
+                  </p>
+                )}
+
                 {step < 5 ? (
                   <Button 
                     type="button"
                     onClick={() => setStep((s) => (s < 5 ? (s + 1) as 1 | 2 | 3 | 4 | 5 : s))}
-                    disabled={step === 3 && selectedVendors.length === 0}
+                    disabled={!canGoNext}
                   >
                     Next
                     <ChevronRight className="ml-2 h-4 w-4" />
@@ -753,7 +847,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
                   <Button 
                     type="submit" 
                     className="bg-accent hover:bg-accent/90"
-                    disabled={createRfq.isPending || selectedVendors.length === 0}
+                    disabled={createRfq.isPending || blockingSteps.length > 0}
                   >
                     {createRfq.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Auction RFQ

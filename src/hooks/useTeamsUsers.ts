@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { DispatchStatus } from '@/lib/rfqWorkflow';
 
 export interface Team {
   id: string;
@@ -115,13 +116,19 @@ export function useAppUsers(teamId?: string) {
 export interface Dispatch {
   id: string;
   dispatchNumber: string;
+  /** Global shipment identifier handed to DxTrack. */
+  gid: string;
+  /** Dispatch lifecycle — deliberately separate from the RFQ status. */
+  status: DispatchStatus;
   rfqId?: string;
+  rfqNumber?: string;
   quoteId?: string;
   laneId?: string;
   vendor: string;
   mode: string;
   type: string;
   incoterm: string;
+  pickDrop?: string;
   originPort: string;
   destinationPort: string;
   containers: { size: string; qty: number }[];
@@ -134,35 +141,112 @@ export interface Dispatch {
   consignee?: string;
   customer?: string;
   poNumber: string;
+  team?: string;
+  customs?: string;
+  originAddress?: string;
+  destinationAddress?: string;
+  stuffingLocation?: string;
+  destuffingLocation?: string;
+  requiredCharges?: string[];
   cargoValue: number;
   cargoCurrency: string;
   executionMonth: string;
   additionalNotes: string;
   customFields: Record<string, string>;
+  /** Confirmed quotes attached to this dispatch (split shipments hold >1). */
+  quotes: DispatchQuote[];
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface DispatchQuote {
+  id: string;
+  quoteId?: string;
+  vendor: string;
+  rate: number;
+  currency: string;
+  allocatedQuantity: number;
+  transitDays?: number;
+  confirmedAt: string;
 }
 
 const DISPATCHES_KEY = 'daistrix.dispatches';
 
 export function useDispatches() {
-  const [dispatches, setDispatches] = useState<Dispatch[]>(() => load(DISPATCHES_KEY, [] as Dispatch[]));
+  const [dispatches, setDispatches] = useState<Dispatch[]>(() =>
+    (load(DISPATCHES_KEY, [] as Dispatch[]) || []).map((d) => ({
+      ...d,
+      status: d.status || 'NEW_DISPATCH',
+      quotes: d.quotes || [],
+      gid: d.gid || `GID-${d.dispatchNumber}`,
+      updatedAt: d.updatedAt || d.createdAt,
+    }))
+  );
+
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === DISPATCHES_KEY && e.newValue) setDispatches(JSON.parse(e.newValue));
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
 
   const save = useCallback((next: Dispatch[]) => {
     setDispatches(next);
     localStorage.setItem(DISPATCHES_KEY, JSON.stringify(next));
   }, []);
 
-  const addDispatch = (d: Omit<Dispatch, 'id' | 'dispatchNumber' | 'createdAt'>) => {
+  const addDispatch = (
+    d: Omit<Dispatch, 'id' | 'dispatchNumber' | 'createdAt' | 'updatedAt' | 'gid' | 'status' | 'quotes'> &
+      Partial<Pick<Dispatch, 'quotes' | 'status'>>
+  ) => {
     const seq = String(dispatches.length + 1).padStart(5, '0');
+    const dispatchNumber = `DSP-${new Date().getFullYear()}-${seq}`;
     const dispatch: Dispatch = {
       ...d,
       id: `d${Date.now()}`,
-      dispatchNumber: `DSP-${new Date().getFullYear()}-${seq}`,
+      dispatchNumber,
+      gid: `GID-${dispatchNumber}`,
+      status: d.status || 'NEW_DISPATCH',
+      quotes: d.quotes || [],
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     save([dispatch, ...dispatches]);
     return dispatch;
   };
 
-  return { dispatches, addDispatch };
+  const updateDispatch = (id: string, patch: Partial<Dispatch>) =>
+    save(dispatches.map((d) => (d.id === id ? { ...d, ...patch, updatedAt: new Date().toISOString() } : d)));
+
+  const setDispatchStatus = (id: string, status: DispatchStatus) => updateDispatch(id, { status });
+
+  const addQuoteToDispatch = (id: string, q: Omit<DispatchQuote, 'id' | 'confirmedAt'>) => {
+    const row: DispatchQuote = { ...q, id: `dq${Date.now()}`, confirmedAt: new Date().toISOString() };
+    save(
+      dispatches.map((d) =>
+        d.id === id ? { ...d, quotes: [...(d.quotes || []), row], updatedAt: new Date().toISOString() } : d
+      )
+    );
+    return row;
+  };
+
+  const removeQuoteFromDispatch = (id: string, quoteRowId: string) =>
+    save(
+      dispatches.map((d) =>
+        d.id === id ? { ...d, quotes: (d.quotes || []).filter((q) => q.id !== quoteRowId) } : d
+      )
+    );
+
+  const getDispatch = (id: string) => dispatches.find((d) => d.id === id || d.dispatchNumber === id);
+
+  return {
+    dispatches,
+    addDispatch,
+    updateDispatch,
+    setDispatchStatus,
+    addQuoteToDispatch,
+    removeQuoteFromDispatch,
+    getDispatch,
+  };
 }

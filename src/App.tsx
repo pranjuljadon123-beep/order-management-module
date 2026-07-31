@@ -16,6 +16,7 @@ import Auth from "./pages/Auth";
 import VendorPortal from "./pages/VendorPortal";
 import VendorRfqDetail from "./pages/VendorRfqDetail";
 import Settings from "./pages/Settings";
+import DispatchDetail from "./pages/DispatchDetail";
 
 // Website Pages
 import WebsiteHome from "./pages/website/WebsiteHome";
@@ -63,6 +64,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/procurement" element={<Procurement />} />
+          <Route path="/dispatch/:dispatchId" element={<DispatchDetail />} />
           <Route path="/shipments" element={<Shipments />} />
           <Route path="/tracking" element={<Tracking />} />
           <Route path="/documents" element={<Documents />} />

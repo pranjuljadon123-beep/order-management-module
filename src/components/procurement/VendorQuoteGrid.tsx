@@ -1,9 +1,13 @@
-import { useQuotesByLane, useCreateAward, useUpdateRfqStatus } from '@/hooks/useProcurement';
+import { useQuotesByLane } from '@/hooks/useProcurement';
+import { useConfirmQuote, useSetRfqWorkflowStatus } from '@/hooks/useRfqLifecycle';
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CreateDispatchDialog } from '@/components/dispatch/CreateDispatchDialog';
 import { useDispatches } from '@/hooks/useTeamsUsers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
@@ -11,7 +15,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  deriveRfqStatus,
+  computeAllocation,
+  validateAllocation,
+  isContainerMode,
+} from '@/lib/rfqWorkflow';
 import { 
   Star, 
   Loader2,
@@ -37,37 +47,64 @@ interface VendorQuoteGridProps {
   rfqStatus: string;
   isVendor?: boolean;
   bidDeadline?: string;
+  /** Full RFQ record — the single source of truth for status + allocation. */
+  rfq?: any;
 }
 
-export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidDeadline }: VendorQuoteGridProps) {
+export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidDeadline, rfq }: VendorQuoteGridProps) {
   const { data: quotes, isLoading } = useQuotesByLane(lane.id);
-  const createAward = useCreateAward();
-  const updateRfqStatus = useUpdateRfqStatus();
+  const navigate = useNavigate();
+  const confirmQuote = useConfirmQuote();
+  const setWorkflowStatus = useSetRfqWorkflowStatus();
   const { dispatches } = useDispatches();
   const [dispatchOpen, setDispatchOpen] = useState(false);
   const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
   const [detailQuote, setDetailQuote] = useState<Quote | null>(null);
   const [showCharges, setShowCharges] = useState(true);
+  const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number } | null>(null);
+  const [allocQty, setAllocQty] = useState('1');
 
-  const now = Date.now();
-  const deadlineMs = bidDeadline ? new Date(bidDeadline).getTime() : null;
-  const deadlinePassed = deadlineMs != null && deadlineMs <= now;
-  const bidsClosed = deadlinePassed || ['evaluation', 'awarded', 'expired'].includes(rfqStatus);
-  const bidsOpen = !bidsClosed && ['published', 'bidding'].includes(rfqStatus);
+  const rfqRecord = rfq ?? { status: rfqStatus, bid_deadline: bidDeadline };
+  const derived = deriveRfqStatus(rfqRecord);
+  const bidsOpen = derived.bidsOpen;
+  const bidsClosed = !bidsOpen;
+  const allocation = computeAllocation(
+    Number(rfqRecord.required_quantity) || Number(lane.quantity) || 0,
+    Number(rfqRecord.allocated_quantity) || 0
+  );
 
   const dispatchForQuote = (quoteId: string) =>
     dispatches.find((d) => d.quoteId === quoteId);
 
-  const openDispatch = (quote: Quote, carrier: Carrier) => {
+  const openDispatch = (quote: Quote, carrier: Carrier, allocatedQty?: number) => {
+    const qty = allocatedQty ?? Number(lane.quantity) ?? 1;
     setDispatchPrefill({
+      team: rfqRecord.team || 'Demo USD',
+      poNumber: rfqRecord.po_number || rfqRecord.rfq_number || '',
       vendor: carrier?.name || '',
       rfqId,
+      rfqNumber: rfqRecord.rfq_number,
       quoteId: quote.id,
       laneId: lane.id,
       originPort: lane.origin_port || `${lane.origin_city}${lane.origin_country ? ', ' + lane.origin_country : ''}`,
       destinationPort: lane.destination_port || `${lane.destination_city}${lane.destination_country ? ', ' + lane.destination_country : ''}`,
-      mode: 'FCL',
-      containers: lane.equipment_type ? [{ size: lane.equipment_type, qty: lane.quantity || 1 }] : undefined,
+      mode: isContainerMode(rfqRecord.mode) ? 'FCL' : 'LCL',
+      incoterm: rfqRecord.incoterms || undefined,
+      type: rfqRecord.type || 'Export',
+      pickDrop: rfqRecord.pick_drop || undefined,
+      containers: isContainerMode(rfqRecord.mode)
+        ? [{ size: lane.equipment_type || '40ft', qty }]
+        : undefined,
+      quotes: [
+        {
+          quoteId: quote.id,
+          vendor: carrier?.name || 'Vendor',
+          rate: quote.total_landed_cost || quote.base_freight_rate,
+          currency: quote.currency,
+          allocatedQuantity: qty,
+          transitDays: quote.transit_time_days,
+        },
+      ],
     });
     setDispatchOpen(true);
   };
@@ -107,22 +144,41 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
     : null;
   const anyConfirmed = rateValues.length > 0;
 
-  const handleAward = async (quote: Quote) => {
+  /** Opens the confirmation modal — confirmation is never a one-click action. */
+  const openConfirm = (quote: Quote, rank: number) => {
     if (!bidsClosed) {
       toast.error('Bidding is still open', {
-        description: 'You can confirm a vendor only after the bid deadline has passed.',
+        description: 'You can confirm a vendor only after the bid window has closed.',
       });
       return;
     }
-    await createAward.mutateAsync({
-      rfq_id: rfqId,
-      lane_id: lane.id,
-      quote_id: quote.id,
-      carrier_id: quote.carrier_id,
-      awarded_rate: quote.total_landed_cost || quote.base_freight_rate,
+    setAllocQty(String(allocation.remaining || 1));
+    setConfirmTarget({ quote, rank });
+  };
+
+  const runConfirm = async (thenDispatch: boolean) => {
+    if (!confirmTarget) return;
+    const qty = parseInt(allocQty, 10);
+    const problem = validateAllocation(qty, allocation);
+    if (problem) return toast.error(problem);
+
+    const quote = confirmTarget.quote;
+    const res = await confirmQuote.mutateAsync({
+      rfqId,
+      laneId: lane.id,
+      quoteId: quote.id,
+      carrierId: quote.carrier_id,
+      awardedRate: quote.total_landed_cost || quote.base_freight_rate,
       currency: quote.currency,
+      allocatedQuantity: qty,
     });
-    toast.success('Vendor confirmed — proceed to create dispatch');
+    toast.success(
+      res.fully
+        ? 'Fully allocated — RFQ closed. Create the dispatch to hand over to operations.'
+        : `Confirmed ${qty} unit(s). ${res.required - res.nextAllocated} still open for other vendors.`
+    );
+    setConfirmTarget(null);
+    if (thenDispatch) openDispatch(quote, quote.carrier as Carrier, qty);
   };
 
   const formatCurrency = (amount: number, currency: string = 'USD') => {
@@ -195,7 +251,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
     }
   };
 
-  const canAward = bidsClosed && !lane.is_awarded && !isVendor;
+  const canAward = bidsClosed && !isVendor && allocation.remaining > 0;
 
   return (
     <>
@@ -225,26 +281,31 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
           Deadline: {new Date(bidDeadline).toLocaleString()}
         </span>
       )}
+      {allocation.required > 0 && (
+        <span className="text-xs text-muted-foreground">
+          Allocated {allocation.allocated}/{allocation.required} · {allocation.remaining} remaining
+        </span>
+      )}
       {bidsOpen && !isVendor && (
         <Button
           size="sm"
           variant="outline"
-          onClick={() => updateRfqStatus.mutate({ id: rfqId, status: 'evaluation' })}
-          disabled={updateRfqStatus.isPending}
+          onClick={() => setWorkflowStatus.mutate({ rfqId, status: 'MY_APPROVAL' })}
+          disabled={setWorkflowStatus.isPending}
         >
           <Lock className="h-3 w-3 mr-1 shrink-0" />
           Close Bids & Start Evaluation
         </Button>
       )}
-      {bidsClosed && !lane.is_awarded && !isVendor && sortedQuotes[0] && (
+      {canAward && sortedQuotes[0] && (
         <Button
           size="sm"
           className="bg-success hover:bg-success/90"
-          onClick={() => handleAward(sortedQuotes[0])}
-          disabled={createAward.isPending}
+          onClick={() => openConfirm(sortedQuotes[0], 1)}
+          disabled={confirmQuote.isPending}
         >
           <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
-          Confirm Best Quote
+          Confirm L1 Quote
         </Button>
       )}
       {lane.is_awarded && !isVendor && (() => {
@@ -498,10 +559,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <Button 
                           size="sm" 
                           className="text-xs min-w-0 px-2 bg-success hover:bg-success/90"
-                          onClick={() => handleAward(quote)}
-                          disabled={createAward.isPending}
+                          onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1)}
+                          disabled={confirmQuote.isPending}
                         >
-                          {createAward.isPending ? (
+                          {confirmQuote.isPending ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
@@ -566,6 +627,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
         open={dispatchOpen}
         onOpenChange={setDispatchOpen}
         prefill={dispatchPrefill}
+        onCreated={(d: any) => navigate(`/dispatch/${d.id}`)}
       />
     </div>
 
@@ -618,6 +680,88 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
             )}
           </div>
         )}
+      </DialogContent>
+    </Dialog>
+
+    {/* Confirm quote — allocation aware, never a silent one-click award */}
+    <Dialog open={!!confirmTarget} onOpenChange={(o) => !o && setConfirmTarget(null)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            Confirm L{confirmTarget?.rank} quote — {(confirmTarget?.quote.carrier as Carrier)?.name}
+          </DialogTitle>
+        </DialogHeader>
+        {confirmTarget && (
+          <div className="space-y-4 text-sm">
+            <div className="grid grid-cols-2 gap-3 rounded-lg border p-3">
+              <div>
+                <p className="text-muted-foreground">Rate</p>
+                <p className="font-semibold">
+                  {formatCurrency(
+                    confirmTarget.quote.total_landed_cost || confirmTarget.quote.base_freight_rate,
+                    confirmTarget.quote.currency
+                  )}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Transit</p>
+                <p className="font-semibold">{confirmTarget.quote.transit_time_days ?? '-'} days</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Lane</p>
+                <p className="font-semibold truncate">
+                  {lane.origin_city} → {lane.destination_city}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Remaining</p>
+                <p className="font-semibold">
+                  {allocation.required > 0 ? `${allocation.remaining} of ${allocation.required}` : 'Not tracked'}
+                </p>
+              </div>
+            </div>
+            <div>
+              <Label>Allocate quantity *</Label>
+              <Input
+                className="mt-2"
+                type="number"
+                min={1}
+                max={allocation.required > 0 ? allocation.remaining : undefined}
+                value={allocQty}
+                onChange={(e) => setAllocQty(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Allocate less than the remaining quantity to split this RFQ across multiple vendors.
+              </p>
+            </div>
+          </div>
+        )}
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={() => setConfirmTarget(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="outline"
+            disabled={confirmQuote.isPending}
+            onClick={() => runConfirm(false)}
+          >
+            Confirm only
+          </Button>
+          <Button
+            className="bg-accent hover:bg-accent/90"
+            disabled={confirmQuote.isPending}
+            onClick={() => runConfirm(true)}
+          >
+            {confirmQuote.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Truck className="mr-1 h-4 w-4" />
+                Confirm &amp; Create Dispatch
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
     </>
