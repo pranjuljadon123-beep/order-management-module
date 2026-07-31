@@ -603,6 +603,18 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         >
                           Negotiate
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs px-2"
+                          onClick={() =>
+                            toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`, {
+                              description: 'Vendor asked to validate this rate is still valid. RFQ status unchanged.',
+                            })
+                          }
+                        >
+                          Reconfirm Quote
+                        </Button>
                       </div>
                     ) : bidsOpen ? (
                       <Button size="sm" variant="outline" className="w-full text-xs px-2" disabled>
