@@ -206,9 +206,9 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredRfqs.map((rfq, index) => {
-                const auctionStatus = statusConfig[rfq.auction_status as AuctionStatus] || statusConfig.draft;
-                const StatusIcon = auctionStatus.icon;
+              filteredRfqs.map(({ rfq, derived }, index) => {
+                const StatusIcon =
+                  (statusConfig[rfq.auction_status as AuctionStatus] || statusConfig.draft).icon;
                 const ModeIcon = modeIcons[rfq.mode] || Ship;
                 const laneCount = rfq.lanes?.length || 0;
                 const bidCount = rfq.bids?.length || 0;
@@ -252,7 +252,7 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {auctionEnd && (rfq.auction_status === 'live' || rfq.auction_status === 'scheduled') ? (
+                      {auctionEnd && derived.bidsOpen ? (
                         <AuctionTimer 
                           endTime={auctionEnd} 
                           startTime={rfq.auction_config?.auction_start}
@@ -267,9 +267,9 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className={cn("status-badge whitespace-nowrap capitalize", auctionStatus.variant)}>
-                        <StatusIcon className={cn("h-3 w-3", rfq.auction_status === 'live' && "animate-pulse")} />
-                        {auctionStatus.label}
+                      <span className={cn('status-badge whitespace-nowrap', derived.className)}>
+                        <StatusIcon className={cn('h-3 w-3', derived.bidsOpen && 'animate-pulse')} />
+                        {derived.label}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -284,31 +284,33 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          {(rfq.auction_status === 'draft' || rfq.auction_status === 'scheduled') && (
-                            <DropdownMenuItem onClick={() => handleStartAuction(rfq)}>
-                              <Play className="mr-2 h-4 w-4" />
-                              Start Auction
+                          {derived.status === 'OPEN' && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setWorkflowStatus.mutate({ rfqId: rfq.id, status: 'UNDER_NEGOTIATION' })
+                              }
+                            >
+                              <Pause className="mr-2 h-4 w-4" />
+                              Move to Negotiation
                             </DropdownMenuItem>
                           )}
-                          {rfq.auction_status === 'live' && (
+                          {(derived.status === 'OPEN' || derived.status === 'UNDER_NEGOTIATION') && (
                             <>
-                              <DropdownMenuItem onClick={() => handlePauseAuction(rfq)}>
-                                <Pause className="mr-2 h-4 w-4" />
-                                Pause Auction
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleCloseAuction(rfq)}>
+                              <DropdownMenuItem
+                                onClick={() => setWorkflowStatus.mutate({ rfqId: rfq.id, status: 'CLOSED' })}
+                              >
                                 <StopCircle className="mr-2 h-4 w-4" />
-                                Close Auction
+                                Close Bidding
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setWorkflowStatus.mutate({ rfqId: rfq.id, status: 'CANCELLED' })}
+                              >
+                                <AlertCircle className="mr-2 h-4 w-4" />
+                                Cancel RFQ
                               </DropdownMenuItem>
                             </>
                           )}
-                          {rfq.auction_status === 'paused' && (
-                            <DropdownMenuItem onClick={() => handleStartAuction(rfq)}>
-                              <Play className="mr-2 h-4 w-4" />
-                              Resume Auction
-                            </DropdownMenuItem>
-                          )}
-                          {rfq.auction_status === 'closed' && (
+                          {(derived.status === 'CLOSED' || derived.status === 'CONFIRMED') && (
                             <DropdownMenuItem onClick={() => onSelectRfq(rfq)}>
                               <Trophy className="mr-2 h-4 w-4" />
                               Award Lanes
@@ -323,6 +325,7 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
             )}
           </TableBody>
         </Table>
+      </div>
       </div>
     </div>
   );
