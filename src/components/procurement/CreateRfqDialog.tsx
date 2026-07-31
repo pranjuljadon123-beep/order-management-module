@@ -3,6 +3,8 @@ import { useForm, useFieldArray, useWatch, UseFormReturn } from 'react-hook-form
 import { useCreateRfq } from '@/hooks/useProcurement';
 import { useShippers, useConsignees, getEntityAddress, getEntityPort } from '@/hooks/useEntities';
 import { VendorSelectionSection } from './VendorSelectionSection';
+import { RequiredChargesSection } from './RequiredChargesSection';
+import { isContainerMode, CONTAINER_SIZES } from '@/lib/rfqWorkflow';
 import {
   Dialog,
   DialogContent,
