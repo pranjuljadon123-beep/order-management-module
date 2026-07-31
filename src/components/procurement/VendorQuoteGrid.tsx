@@ -1,6 +1,7 @@
 import { useQuotesByLane } from '@/hooks/useProcurement';
 import { useConfirmQuote, useSetRfqWorkflowStatus } from '@/hooks/useRfqLifecycle';
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CreateDispatchDialog } from '@/components/dispatch/CreateDispatchDialog';
 import { useDispatches } from '@/hooks/useTeamsUsers';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,7 @@ interface VendorQuoteGridProps {
 
 export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidDeadline, rfq }: VendorQuoteGridProps) {
   const { data: quotes, isLoading } = useQuotesByLane(lane.id);
+  const navigate = useNavigate();
   const confirmQuote = useConfirmQuote();
   const setWorkflowStatus = useSetRfqWorkflowStatus();
   const { dispatches } = useDispatches();
