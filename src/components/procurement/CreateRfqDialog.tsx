@@ -797,14 +797,27 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {step === 1 && renderStep1()}
-            {step === 2 && renderStep2()}
-            {step === 3 && renderStep3()}
-            {step === 4 && renderStep4()}
-            {step === 5 && renderStep5()}
+            {step === 1 ? (
+              renderStep1()
+            ) : (
+              <div className="grid gap-6 md:grid-cols-[210px_1fr]">
+                <aside className="md:border-r md:pr-4">
+                  <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Steps
+                  </p>
+                  <StepRail />
+                </aside>
+                <div className="min-w-0">
+                  {step === 2 && renderStep2()}
+                  {step === 3 && renderStep3()}
+                  {step === 4 && renderStep4()}
+                  {step === 5 && renderStep5()}
+                </div>
+              </div>
+            )}
 
             {step > 1 && (
-              <div className="flex justify-between pt-4 border-t border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/50">
                 <Button 
                   type="button" 
                   variant="ghost" 
@@ -813,12 +826,19 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
                   <ChevronLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                
+
+                {step === 5 && blockingSteps.length > 0 && (
+                  <p className="flex items-center gap-2 text-xs text-warning">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    Complete: {blockingSteps.map((s) => s.label).join(', ')}
+                  </p>
+                )}
+
                 {step < 5 ? (
                   <Button 
                     type="button"
                     onClick={() => setStep((s) => (s < 5 ? (s + 1) as 1 | 2 | 3 | 4 | 5 : s))}
-                    disabled={step === 3 && selectedVendors.length === 0}
+                    disabled={!canGoNext}
                   >
                     Next
                     <ChevronRight className="ml-2 h-4 w-4" />
@@ -827,7 +847,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
                   <Button 
                     type="submit" 
                     className="bg-accent hover:bg-accent/90"
-                    disabled={createRfq.isPending || selectedVendors.length === 0}
+                    disabled={createRfq.isPending || blockingSteps.length > 0}
                   >
                     {createRfq.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Create Auction RFQ
