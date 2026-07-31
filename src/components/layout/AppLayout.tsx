@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen bg-background">
       <Sidebar collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} />
       <div className={cn(
-        "transition-all duration-300",
+        "min-w-0 overflow-x-hidden transition-all duration-300",
         sidebarCollapsed ? "pl-20" : "pl-64"
       )}>
         <Header />

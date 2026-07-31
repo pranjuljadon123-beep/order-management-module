@@ -30,8 +30,8 @@ export function InvoiceList({
   }
 
   return (
-    <ScrollArea className="flex-1">
-      <div className="min-w-[1200px]">
+    <ScrollArea className="w-full flex-1 [&>[data-radix-scroll-area-viewport]>div]:!block">
+      <div className="w-full min-w-0">
         {invoices.map((invoice) => (
           <InvoiceRow
             key={invoice.id}

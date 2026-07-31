@@ -78,7 +78,7 @@ const Invoices = () => {
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {/* Toolbar */}
           <InvoiceToolbar
             selectedCount={selectedInvoices.length}

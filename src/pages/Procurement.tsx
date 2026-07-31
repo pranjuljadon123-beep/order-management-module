@@ -32,9 +32,9 @@ const Procurement = () => {
       <div className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-                <Gavel className="h-5 w-5 text-accent" />
+            <div className="flex items-start gap-3">
+              <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+                <Gavel className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">

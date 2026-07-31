@@ -91,7 +91,7 @@ export function MilestoneTimeline({ shipment, milestones }: MilestoneTimelinePro
       </div>
 
       {/* Timeline */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="w-full flex-1 [&>[data-radix-scroll-area-viewport]>div]:!block">
         <div className="p-4">
           {milestones.map((milestone, index) => {
             const IconComponent = iconMap[milestone.icon];

@@ -8,7 +8,6 @@ import {
   Ship,
   Truck,
   Train,
-  Info,
   Download,
   Trash2,
   AlertCircle,
@@ -88,7 +87,7 @@ export function InvoiceRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-4 px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer group",
+        "flex items-center gap-4 px-4 py-3 min-h-[76px] border-b border-border hover:bg-muted/50 transition-colors cursor-pointer group",
         isSelected && "bg-primary/5"
       )}
       onClick={onClick}
@@ -117,29 +116,57 @@ export function InvoiceRow({
         <Star className={cn("h-4 w-4", invoice.isStarred && "fill-current")} />
       </Button>
 
-      {/* Title & Attachment */}
-      <div className="min-w-[180px] max-w-[200px]">
-        <div className="flex items-center gap-2">
+      {/* Title, vendor, invoice no */}
+      <div className="min-w-0 flex-[2]">
+        <div className="flex items-center gap-2 min-w-0">
           <span className="font-medium text-sm text-foreground truncate">{invoice.title}</span>
           {invoice.hasAttachment && (
             <Paperclip className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
           )}
         </div>
+        <div className="text-xs text-muted-foreground truncate">
+          {invoice.vendor.name}
+        </div>
+        <div className="text-xs text-muted-foreground truncate">
+          Invoice: {invoice.invoiceNumber || "—"}
+        </div>
+      </div>
+
+      {/* Mode & Route */}
+      <div className="hidden min-w-0 flex-[1.6] lg:block">
+        <div className="flex items-center gap-1.5 text-xs">
+          <ModeIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <span className="font-medium text-foreground">{invoice.mode.toUpperCase()}</span>
+          <span className="truncate text-muted-foreground">· GID {invoice.gid}</span>
+        </div>
+        <div className="mt-1 flex items-center gap-1.5 text-xs min-w-0">
+          <span className="shrink-0">{getFlagEmoji(invoice.origin.countryCode)}</span>
+          <span className="truncate text-foreground">{invoice.origin.port}</span>
+          <span className="shrink-0 text-muted-foreground">→</span>
+          <span className="shrink-0">{getFlagEmoji(invoice.destination.countryCode)}</span>
+          <span className="truncate text-foreground">{invoice.destination.port}</span>
+        </div>
       </div>
 
       {/* Next Approvers */}
-      <div className="min-w-[120px] text-sm text-muted-foreground">
-        Next approvers:
-        {invoice.approvers.length > 0 ? (
-          <span className="text-foreground ml-1">{invoice.approvers.join(", ")}</span>
-        ) : null}
+      <div className="hidden min-w-0 flex-1 text-xs text-muted-foreground 2xl:block">
+        <div>Next approvers</div>
+        <div className="truncate text-foreground">
+          {invoice.approvers.length > 0 ? invoice.approvers.join(", ") : "—"}
+        </div>
+      </div>
+
+      {/* Dates */}
+      <div className="hidden w-[130px] shrink-0 text-xs text-muted-foreground 2xl:block">
+        <div>Uploaded</div>
+        <div className="text-foreground">{format(invoice.uploadedAt, "dd/MM/yyyy HH:mm")}</div>
       </div>
 
       {/* Status */}
-      <div className="min-w-[110px]">
+      <div className="w-[112px] shrink-0">
         <Badge
           variant="outline"
-          className={cn("font-medium text-xs", statusBadge.className)}
+          className={cn("font-medium text-xs whitespace-nowrap", statusBadge.className)}
         >
           {statusBadge.label}
           {invoice.isPriority && (
@@ -148,60 +175,15 @@ export function InvoiceRow({
         </Badge>
       </div>
 
-      {/* Vendor */}
-      <div className="min-w-[140px] max-w-[160px]">
-        <div className="text-xs text-muted-foreground">Vendor: {invoice.vendor.name.slice(0, 18)}...</div>
-      </div>
-
-      {/* Invoice Number */}
-      <div className="min-w-[130px]">
-        <div className="text-sm text-foreground">
-          Invoice: {invoice.invoiceNumber || <span className="text-muted-foreground">—</span>}
-        </div>
-      </div>
-
-      {/* Mode & Route */}
-      <div className="min-w-[200px] flex-1">
-        <div className="flex items-center gap-2 text-xs mb-1">
-          <ModeIcon className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-muted-foreground">MODE:</span>
-          <span className="font-medium text-foreground">{invoice.mode.toUpperCase()}</span>
-          <Info className="h-3 w-3 text-muted-foreground" />
-        </div>
-        <div className="text-xs text-muted-foreground">GID: {invoice.gid}</div>
-        <div className="flex flex-col gap-0.5 mt-1">
-          <div className="flex items-center gap-1.5 text-xs">
-            <span>{getFlagEmoji(invoice.origin.countryCode)}</span>
-            <span className="text-foreground truncate max-w-[160px]">{invoice.origin.port}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs">
-            <span>{getFlagEmoji(invoice.destination.countryCode)}</span>
-            <span className="text-foreground truncate max-w-[160px]">{invoice.destination.port}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Dates */}
-      <div className="min-w-[160px]">
-        <div className="text-xs text-muted-foreground">
-          Uploaded At: {format(invoice.uploadedAt, "dd/MM/yyyy HH:mm")}
-        </div>
-        {invoice.reuploadedAt && (
-          <div className="text-xs text-muted-foreground">
-            Reuploaded At: {format(invoice.reuploadedAt, "dd/MM/yyyy HH:mm")}
-          </div>
-        )}
-      </div>
-
       {/* Difference */}
-      <div className="min-w-[100px] text-right">
+      <div className="w-[120px] shrink-0 text-right">
         {hasDifference ? (
           <>
             <div className="text-xs text-muted-foreground">
               {difference > 0 ? "Overcharged by" : "Undercharged by"}
             </div>
             <div className={cn(
-              "text-sm font-medium",
+              "text-sm font-medium tabular-nums",
               difference > 0 ? "text-destructive" : "text-green-600"
             )}>
               {Math.abs(difference).toLocaleString('en-IN', {
@@ -217,7 +199,7 @@ export function InvoiceRow({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+      <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
         <Button
           variant="ghost"
           size="icon"
