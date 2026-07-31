@@ -219,8 +219,15 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
       cargo_type: data.cargo_type,
       cargo_description: data.cargo_description,
       pickup_date: data.pickup_date || null,
+      pick_drop: (data as any).pick_drop || null,
+      required_charges: (data as any).required_charges || [],
+      container_size: (data as any).container_size || null,
+      required_quantity:
+        Number((data as any).container_count) || Number(data.quantity) || undefined,
       lanes: data.lanes.map(lane => ({
         ...lane,
+        equipment_type: lane.equipment_type || (data as any).container_size || '',
+        quantity: lane.quantity ?? Number((data as any).container_count) ?? undefined,
         shipper_id: lane.shipper_id || data.shipper_id || null,
         consignee_id: lane.consignee_id || data.consignee_id || null,
       })),
