@@ -8,7 +8,6 @@ import {
   Ship,
   Truck,
   Train,
-  Info,
   Download,
   Trash2,
   AlertCircle,
