@@ -32,14 +32,14 @@ export function KPICard({
       )}
       style={{ animationDelay: "0.1s" }}
     >
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 space-y-2">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <p className="text-3xl font-bold tracking-tight text-foreground animate-count-up">
             {value}
           </p>
           {change !== undefined && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
               {isPositive && (
                 <span className="flex items-center text-sm font-medium text-success">
                   <ArrowUpRight className="h-4 w-4" />
@@ -53,7 +53,7 @@ export function KPICard({
                 </span>
               )}
               {changeLabel && (
-                <span className="text-sm text-muted-foreground">
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
                   {changeLabel}
                 </span>
               )}
@@ -62,7 +62,7 @@ export function KPICard({
         </div>
         <div
           className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-xl",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
             variant === "default" && "bg-secondary text-foreground",
             variant === "accent" && "bg-cyan-light text-accent",
             variant === "success" && "bg-success-light text-success",
