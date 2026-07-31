@@ -232,7 +232,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
           onClick={() => updateRfqStatus.mutate({ id: rfqId, status: 'evaluation' })}
           disabled={updateRfqStatus.isPending}
         >
-          <Lock className="h-3 w-3 mr-1" />
+          <Lock className="h-3 w-3 mr-1 shrink-0" />
           Close Bids & Start Evaluation
         </Button>
       )}
@@ -243,7 +243,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
           onClick={() => handleAward(sortedQuotes[0])}
           disabled={createAward.isPending}
         >
-          <CheckCircle2 className="h-3 w-3 mr-1" />
+          <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
           Confirm Best Quote
         </Button>
       )}
@@ -257,7 +257,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
             className="bg-accent hover:bg-accent/90"
             onClick={() => openDispatch(confirmedQuote, confirmedQuote.carrier as Carrier)}
           >
-            <Truck className="h-3 w-3 mr-1" />
+            <Truck className="h-3 w-3 mr-1 shrink-0" />
             Create Dispatch
           </Button>
         );
@@ -282,7 +282,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                 className="w-fit"
                 onClick={() => toast.info('Vendor filter', { description: 'Filter by carrier, rating or rank — coming inline soon.' })}
               >
-                <Filter className="h-3 w-3 mr-1" />
+                <Filter className="h-3 w-3 mr-1 shrink-0" />
                 Filter
               </Button>
             </div>
@@ -458,10 +458,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-full text-xs"
+                      className="w-full text-xs px-2"
                       onClick={() => setDetailQuote(quote)}
                     >
-                      <Eye className="h-3 w-3 mr-1" />
+                      <Eye className="h-3 w-3 mr-1 shrink-0" />
                       View Complete Quote
                     </Button>
 
@@ -471,33 +471,33 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         className="w-full text-xs bg-accent hover:bg-accent/90"
                         onClick={() => toast.success(`Dispatch ${existingDispatch.dispatchNumber} already created`, { description: 'Open the Shipments module to continue execution.' })}
                       >
-                        <Truck className="h-3 w-3 mr-1" />
+                        <Truck className="h-3 w-3 mr-1 shrink-0" />
                         Dispatch Created
                       </Button>
                     ) : isConfirmed ? (
-                      <div className="grid grid-cols-2 gap-1">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs"
+                          className="text-xs min-w-0 px-2"
                           onClick={() => toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`)}
                         >
                           Reconfirm
                         </Button>
                         <Button
                           size="sm"
-                          className="text-xs bg-accent hover:bg-accent/90"
+                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
                           onClick={() => openDispatch(quote, carrier)}
                         >
-                          <Truck className="h-3 w-3 mr-1" />
+                          <Truck className="h-3 w-3 mr-1 shrink-0" />
                           Dispatch
                         </Button>
                       </div>
                     ) : canAward ? (
-                      <div className="grid grid-cols-2 gap-1">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button 
                           size="sm" 
-                          className="text-xs bg-success hover:bg-success/90"
+                          className="text-xs min-w-0 px-2 bg-success hover:bg-success/90"
                           onClick={() => handleAward(quote)}
                           disabled={createAward.isPending}
                         >
@@ -505,7 +505,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
                               Confirm Quote
                             </>
                           )}
@@ -513,38 +513,38 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs"
+                          className="text-xs min-w-0 px-2"
                           onClick={() => toast.info('Negotiation thread opened', { description: `Sending counter-offer request to ${carrier?.name ?? 'vendor'}.` })}
                         >
                           Negotiate
                         </Button>
                       </div>
                     ) : bidsOpen ? (
-                      <Button size="sm" variant="outline" className="w-full text-xs" disabled>
-                        <Lock className="h-3 w-3 mr-1" />
+                      <Button size="sm" variant="outline" className="w-full text-xs px-2" disabled>
+                        <Lock className="h-3 w-3 mr-1 shrink-0" />
                         Locked until bids close
                       </Button>
                     ) : (
-                      <Button size="sm" variant="outline" className="w-full text-xs" disabled>
+                      <Button size="sm" variant="outline" className="w-full text-xs px-2" disabled>
                         {lane.is_awarded ? 'Awarded to another vendor' : 'Not selected'}
                       </Button>
                     )}
 
-                    <div className="grid grid-cols-2 gap-1">
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-xs"
+                        className="text-xs min-w-0 px-2"
                         onClick={() => toast.info(`Open conversation with ${carrier?.name ?? 'vendor'}`)}
                       >
-                        <MessageSquare className="h-3 w-3 mr-1" />
+                        <MessageSquare className="h-3 w-3 mr-1 shrink-0" />
                         Messages
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-xs">
+                          <Button variant="outline" size="sm" className="text-xs min-w-0 px-2">
                             More
-                            <ChevronDown className="h-3 w-3 ml-1" />
+                            <ChevronDown className="h-3 w-3 ml-1 shrink-0" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
