@@ -94,7 +94,7 @@ export function ModularSavings() {
   return (
     <Card className="border-border bg-card">
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <CardTitle className="text-lg font-semibold text-foreground">
               Modular Savings Overview
@@ -103,7 +103,7 @@ export function ModularSavings() {
               YTD savings across all modules
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right shrink-0">
             <div className="text-2xl font-bold text-success">
               {formatCurrency(totalSavings)}
             </div>
@@ -123,15 +123,15 @@ export function ModularSavings() {
               key={module.id}
               className="rounded-lg border border-border bg-background p-4 transition-colors hover:bg-muted/50"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                     <module.icon className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="font-medium text-sm text-foreground">{module.name}</span>
+                  <span className="truncate font-medium text-sm text-foreground">{module.name}</span>
                 </div>
                 <div className={cn(
-                  "flex items-center gap-1 text-xs font-medium",
+                  "flex shrink-0 items-center gap-1 text-xs font-medium",
                   module.trend >= 0 ? "text-success" : "text-destructive"
                 )}>
                   {module.trend >= 0 ? (
@@ -155,9 +155,9 @@ export function ModularSavings() {
 
               <div className="space-y-1.5 mt-3 pt-3 border-t border-border">
                 {module.breakdown.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">{item.label}</span>
-                    <span className="font-medium text-foreground">{formatCurrency(item.amount)}</span>
+                  <div key={idx} className="flex items-center justify-between gap-3 text-xs">
+                    <span className="truncate text-muted-foreground">{item.label}</span>
+                    <span className="shrink-0 font-medium text-foreground tabular-nums">{formatCurrency(item.amount)}</span>
                   </div>
                 ))}
               </div>
