@@ -199,10 +199,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
     }).format(amount) + ' ' + currency;
   };
 
-  const getCarrierReliability = (carrierId: string) => {
+  function getCarrierReliability(carrierId: string) {
     const hash = carrierId.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0);
     return 30 + (Math.abs(hash) % 40);
-  };
+  }
 
   const StarRating = ({ rating }: { rating: number }) => (
     <div className="flex items-center gap-0.5">
