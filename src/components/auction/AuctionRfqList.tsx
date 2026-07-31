@@ -130,7 +130,33 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 lg:flex-row">
+      {/* Status rail — every bucket reads the single derived RFQ status */}
+      <aside className="glass-card h-fit w-full shrink-0 rounded-xl p-2 lg:w-56">
+        <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Status
+        </p>
+        <nav className="flex flex-wrap gap-1 lg:flex-col">
+          {RFQ_STATUS_FILTERS.map((bucket) => (
+            <button
+              key={bucket.key}
+              type="button"
+              onClick={() => setStatusFilter(bucket.key)}
+              className={cn(
+                'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
+                statusFilter === bucket.key
+                  ? 'bg-primary/10 font-medium text-primary'
+                  : 'text-muted-foreground hover:bg-muted'
+              )}
+            >
+              <span className="truncate">{bucket.label}</span>
+              <span className="shrink-0 rounded-full bg-muted px-2 text-xs">{bucketCount(bucket.key)}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      <div className="min-w-0 flex-1 space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -143,24 +169,9 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
           />
         </div>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover">
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="scheduled">Scheduled</SelectItem>
-            <SelectItem value="live">Live</SelectItem>
-            <SelectItem value="paused">Paused</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
-            <SelectItem value="awarded">Awarded</SelectItem>
-          </SelectContent>
-        </Select>
-
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-[140px]">
+            <Filter className="mr-2 h-4 w-4" />
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent className="bg-popover">
