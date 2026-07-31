@@ -679,6 +679,88 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Confirm quote — allocation aware, never a silent one-click award */}
+    <Dialog open={!!confirmTarget} onOpenChange={(o) => !o && setConfirmTarget(null)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            Confirm L{confirmTarget?.rank} quote — {(confirmTarget?.quote.carrier as Carrier)?.name}
+          </DialogTitle>
+        </DialogHeader>
+        {confirmTarget && (
+          <div className="space-y-4 text-sm">
+            <div className="grid grid-cols-2 gap-3 rounded-lg border p-3">
+              <div>
+                <p className="text-muted-foreground">Rate</p>
+                <p className="font-semibold">
+                  {formatCurrency(
+                    confirmTarget.quote.total_landed_cost || confirmTarget.quote.base_freight_rate,
+                    confirmTarget.quote.currency
+                  )}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Transit</p>
+                <p className="font-semibold">{confirmTarget.quote.transit_time_days ?? '-'} days</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Lane</p>
+                <p className="font-semibold truncate">
+                  {lane.origin_city} → {lane.destination_city}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Remaining</p>
+                <p className="font-semibold">
+                  {allocation.required > 0 ? `${allocation.remaining} of ${allocation.required}` : 'Not tracked'}
+                </p>
+              </div>
+            </div>
+            <div>
+              <Label>Allocate quantity *</Label>
+              <Input
+                className="mt-2"
+                type="number"
+                min={1}
+                max={allocation.required > 0 ? allocation.remaining : undefined}
+                value={allocQty}
+                onChange={(e) => setAllocQty(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Allocate less than the remaining quantity to split this RFQ across multiple vendors.
+              </p>
+            </div>
+          </div>
+        )}
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          <Button variant="outline" onClick={() => setConfirmTarget(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="outline"
+            disabled={confirmQuote.isPending}
+            onClick={() => runConfirm(false)}
+          >
+            Confirm only
+          </Button>
+          <Button
+            className="bg-accent hover:bg-accent/90"
+            disabled={confirmQuote.isPending}
+            onClick={() => runConfirm(true)}
+          >
+            {confirmQuote.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Truck className="mr-1 h-4 w-4" />
+                Confirm &amp; Create Dispatch
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
