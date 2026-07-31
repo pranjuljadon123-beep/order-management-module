@@ -114,6 +114,9 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
       </TabsContent>
 
       <TabsContent value="vendors">
+        {freightNotRequired ? (
+          <FreightNotRequiredCard incoterm={(rfq as any).incoterms} />
+        ) : (
         <div className="glass-card rounded-xl p-6">
           <h3 className="text-lg font-semibold mb-4">Invited Vendors</h3>
           {Array.isArray((rfq as any).invited_carriers) && (rfq as any).invited_carriers.length > 0 ? (
@@ -131,10 +134,14 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
             </p>
           )}
         </div>
+        )}
       </TabsContent>
 
       <TabsContent value="quotes">
-        {lanes.map((lane) => (
+        {freightNotRequired ? (
+          <FreightNotRequiredCard incoterm={(rfq as any).incoterms} />
+        ) : (
+          lanes.map((lane) => (
           <VendorQuoteGrid 
             key={lane.id} 
             lane={lane} 
@@ -144,7 +151,8 @@ export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsPro
             isVendor={isVendor}
             bidDeadline={rfq.bid_deadline}
           />
-        ))}
+          ))
+        )}
       </TabsContent>
 
       <TabsContent value="dispatch">
