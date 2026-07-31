@@ -60,17 +60,17 @@ export function QuickAddShipment({ onAddShipment, onViewIntegrations }: QuickAdd
         <ArrowRight className="h-4 w-4 hidden sm:block" />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:gap-3">
+      <div className="flex min-w-[280px] flex-1 flex-col gap-2 sm:flex-row sm:gap-3">
         <Input 
           placeholder="B/L Number or Container Number" 
-          className="flex-1 min-w-0 sm:max-w-xs"
+          className="min-w-[200px] flex-1"
           value={containerId}
           onChange={(e) => setContainerId(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleTrackShipment()}
         />
 
         <Select value={carrier} onValueChange={setCarrier}>
-          <SelectTrigger className="w-full sm:w-48">
+          <SelectTrigger className="w-full shrink-0 sm:w-44">
             <SelectValue placeholder="Select Carrier" />
           </SelectTrigger>
           <SelectContent className="bg-popover">
