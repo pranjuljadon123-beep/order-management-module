@@ -68,10 +68,15 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const derived = deriveRfqStatus(rfqRecord);
   const bidsOpen = derived.bidsOpen;
   const bidsClosed = !bidsOpen;
-  const allocation = computeAllocation(
-    Number(rfqRecord.required_quantity) || Number(lane.quantity) || 0,
-    Number(rfqRecord.allocated_quantity) || 0
-  );
+  // Required quantity can come from the RFQ, the lane, or (for seeded/legacy data)
+  // be parsed out of the lane's estimated volume string e.g. "40 units".
+  const parsedLaneVolume = parseInt(String(lane.estimated_volume ?? '').replace(/[^0-9]/g, ''), 10);
+  const requiredQty =
+    Number(rfqRecord.required_quantity) ||
+    Number(lane.quantity) ||
+    (Number.isFinite(parsedLaneVolume) ? parsedLaneVolume : 0) ||
+    1;
+  const allocation = computeAllocation(requiredQty, Number(rfqRecord.allocated_quantity) || 0);
 
   const dispatchForQuote = (quoteId: string) =>
     dispatches.find((d) => d.quoteId === quoteId);
