@@ -613,7 +613,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" className="text-xs min-w-0 px-2">
-                            More
+                            <span className="truncate">More Options</span>
                             <ChevronDown className="h-3 w-3 ml-1 shrink-0" />
                           </Button>
                         </DropdownMenuTrigger>
