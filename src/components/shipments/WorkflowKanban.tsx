@@ -93,7 +93,7 @@ function ShipmentCard({ workflow }: { workflow: ShipmentWorkflow }) {
 
 export function WorkflowKanban({ stageGroups, bottlenecks }: WorkflowKanbanProps) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-4">
+    <div className="flex gap-4 overflow-x-auto pb-4">
       {STAGES.map(stage => {
         const items = stageGroups[stage.key];
         const hasBottleneck = bottlenecks[stage.key] > 0;
@@ -125,7 +125,7 @@ export function WorkflowKanban({ stageGroups, bottlenecks }: WorkflowKanbanProps
             </div>
 
             {/* Cards */}
-            <ScrollArea className="h-[calc(100vh-380px)]">
+            <ScrollArea className="h-[min(calc(100vh-380px),560px)]">
               <div className="p-2 space-y-2">
                 {items.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-8">No shipments</p>
