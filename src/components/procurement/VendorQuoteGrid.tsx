@@ -249,7 +249,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
     }
   };
 
-  const canAward = bidsClosed && !lane.is_awarded && !isVendor;
+  const canAward = bidsClosed && !isVendor && allocation.remaining > 0;
 
   return (
     <>
@@ -279,26 +279,31 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
           Deadline: {new Date(bidDeadline).toLocaleString()}
         </span>
       )}
+      {allocation.required > 0 && (
+        <span className="text-xs text-muted-foreground">
+          Allocated {allocation.allocated}/{allocation.required} · {allocation.remaining} remaining
+        </span>
+      )}
       {bidsOpen && !isVendor && (
         <Button
           size="sm"
           variant="outline"
-          onClick={() => updateRfqStatus.mutate({ id: rfqId, status: 'evaluation' })}
-          disabled={updateRfqStatus.isPending}
+          onClick={() => setWorkflowStatus.mutate({ rfqId, status: 'MY_APPROVAL' })}
+          disabled={setWorkflowStatus.isPending}
         >
           <Lock className="h-3 w-3 mr-1 shrink-0" />
           Close Bids & Start Evaluation
         </Button>
       )}
-      {bidsClosed && !lane.is_awarded && !isVendor && sortedQuotes[0] && (
+      {canAward && sortedQuotes[0] && (
         <Button
           size="sm"
           className="bg-success hover:bg-success/90"
-          onClick={() => handleAward(sortedQuotes[0])}
-          disabled={createAward.isPending}
+          onClick={() => openConfirm(sortedQuotes[0], 1)}
+          disabled={confirmQuote.isPending}
         >
           <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
-          Confirm Best Quote
+          Confirm L1 Quote
         </Button>
       )}
       {lane.is_awarded && !isVendor && (() => {
@@ -552,10 +557,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <Button 
                           size="sm" 
                           className="text-xs min-w-0 px-2 bg-success hover:bg-success/90"
-                          onClick={() => handleAward(quote)}
-                          disabled={createAward.isPending}
+                          onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1)}
+                          disabled={confirmQuote.isPending}
                         >
-                          {createAward.isPending ? (
+                          {confirmQuote.isPending ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
