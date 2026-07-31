@@ -256,6 +256,79 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
   const isSpot = rfqType === 'spot';
 
+  /**
+   * Per-step validation state — drives the step rail icons and gates Next/Submit.
+   * amber = required and incomplete, green = valid, gray = optional & untouched.
+   */
+  const v = form.watch();
+  const laneValid = (l: any) =>
+    !!(l?.origin_city && l?.origin_country && l?.destination_city && l?.destination_country);
+  const stepStates = [
+    {
+      id: 2,
+      label: 'Reference & Consignment',
+      required: true,
+      valid: !!v.title?.trim() && !!v.mode && (v.lanes || []).length > 0 && (v.lanes || []).every(laneValid),
+      touched: !!v.title?.trim() || (v.lanes || []).some((l: any) => l?.origin_city),
+    },
+    {
+      id: 3,
+      label: 'Vendors',
+      required: true,
+      valid: selectedVendors.length > 0,
+      touched: selectedVendors.length > 0,
+    },
+    {
+      id: 4,
+      label: 'Auction Setup',
+      required: false,
+      valid: !!auctionConfig.structure && !!auctionConfig.rankingLogic,
+      touched: true,
+    },
+    {
+      id: 5,
+      label: 'Enquiry Schedule',
+      required: true,
+      valid: !!v.bid_deadline,
+      touched: !!v.bid_deadline,
+    },
+  ];
+  const stepById = (id: number) => stepStates.find((s) => s.id === id);
+  const blockingSteps = stepStates.filter((s) => s.required && !s.valid);
+  const canGoNext = (() => {
+    const s = stepById(step);
+    return !s?.required || s.valid;
+  })();
+
+  const StepRail = () => (
+    <ol className="space-y-1">
+      {stepStates.map((s) => {
+        const state = s.valid ? 'valid' : s.required ? 'required' : 'optional';
+        return (
+          <li key={s.id}>
+            <button
+              type="button"
+              onClick={() => setStep(s.id as 2 | 3 | 4 | 5)}
+              className={cn(
+                'flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors',
+                step === s.id ? 'bg-muted font-medium' : 'hover:bg-muted/50'
+              )}
+            >
+              {state === 'valid' ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+              ) : state === 'required' ? (
+                <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
+              ) : (
+                <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
+              <span className="truncate">{s.label}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+
   const renderStep1 = () => (
     <div className="space-y-6 py-4">
       <div className="text-center space-y-2">
