@@ -23,6 +23,23 @@ interface RfqDetailTabsProps {
   isVendor?: boolean;
 }
 
+/** Rendered instead of the quoting flow when the incoterm puts main carriage on the counterparty. */
+function FreightNotRequiredCard({ incoterm }: { incoterm?: string }) {
+  return (
+    <div className="glass-card rounded-xl p-10 text-center">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+        <Truck className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold">Freight Not Required</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        Under <span className="font-medium text-foreground">{incoterm}</span> the main carriage is arranged by the
+        counterparty, so no vendor quoting is needed for this RFQ. Use the Enquiry &amp; Other Details tab to review
+        the agreed scope, or the Dispatch tab to hand execution over to operations.
+      </p>
+    </div>
+  );
+}
+
 export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsProps) {
   const freightNotRequired = isFreightNotRequired(
     (rfq as any).incoterms,
