@@ -625,6 +625,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
         open={dispatchOpen}
         onOpenChange={setDispatchOpen}
         prefill={dispatchPrefill}
+        onCreated={(d: any) => navigate(`/dispatch/${d.id}`)}
       />
     </div>
 
