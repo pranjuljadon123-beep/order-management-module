@@ -527,6 +527,133 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
       <Separator />
 
+      {/* Address & Service — incoterm + mode driven */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-semibold">Address &amp; Service</h3>
+          <p className="text-sm text-muted-foreground">
+            Service scope and the charges vendors must quote — derived from the selected incoterm.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="pick_drop"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Pick &amp; Drop</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select service scope" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-popover">
+                    {PICK_DROP_OPTIONS.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {isContainerMode(form.watch('mode')) ? (
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="container_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Container Count</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="e.g. 4"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value, 10) : undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="container_size"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Container Size</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Size" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover">
+                        {CONTAINER_SIZES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="weight_value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gross Weight (KG)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 1200"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="volume_cbm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Volume (CBM)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 18"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className="mb-2 text-sm font-medium">Required Charges</p>
+          <RequiredChargesSection
+            incoterm={form.watch('incoterms')}
+            pickDrop={form.watch('pick_drop')}
+            value={form.watch('required_charges') || []}
+            onChange={(next) => form.setValue('required_charges', next, { shouldDirty: true })}
+          />
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Consignment Details Section */}
       <ConsignmentDetailsSection form={form} rfqType={rfqType} />
 
