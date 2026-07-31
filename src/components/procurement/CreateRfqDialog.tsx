@@ -781,7 +781,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-card">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {step === 1 ? 'Create New Auction RFQ' : `Step ${step} of 5`}
@@ -985,7 +985,7 @@ function LaneFormSection({ form, index, isSpot, fieldsLength, onRemove, shippers
         />
       </div>
 
-      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end [&_label]:gap-1 [&_label]:text-xs [&_label]:leading-tight [&_input]:h-9 [&_button]:h-9">
+      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 xl:grid-cols-4 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end [&_label]:gap-1 [&_label]:text-xs [&_label]:leading-tight [&_input]:h-9 [&_button]:h-9">
         <FormField
           control={form.control}
           name={`lanes.${index}.origin_city`}
