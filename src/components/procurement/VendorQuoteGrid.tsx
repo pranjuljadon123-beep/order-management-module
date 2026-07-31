@@ -320,7 +320,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
         return (
           <Button
             size="sm"
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => openDispatch(confirmedQuote, confirmedQuote.carrier as Carrier)}
           >
             <Truck className="h-3 w-3 mr-1 shrink-0" />
@@ -534,7 +534,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                     {existingDispatch ? (
                       <Button
                         size="sm"
-                        className="w-full text-xs bg-accent text-accent-foreground hover:bg-accent/90"
+                        className="w-full text-xs bg-primary text-primary-foreground hover:bg-primary/90"
                         onClick={() => toast.success(`Dispatch ${existingDispatch.dispatchNumber} already created`, { description: 'Open the Shipments module to continue execution.' })}
                       >
                         <Truck className="h-3 w-3 mr-1 shrink-0" />
@@ -552,7 +552,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         </Button>
                         <Button
                           size="sm"
-                          className="w-full text-xs px-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                          className="w-full text-xs px-2 bg-primary text-primary-foreground hover:bg-primary/90"
                           onClick={() => openDispatch(quote, carrier)}
                         >
                           <Truck className="h-3 w-3 mr-1 shrink-0" />
@@ -578,7 +578,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         </Button>
                         <Button
                           size="sm"
-                          className="w-full text-xs px-2 bg-accent text-accent-foreground hover:bg-accent/90"
+                          className="w-full text-xs px-2 bg-primary text-primary-foreground hover:bg-primary/90"
                           onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1, 'dispatch')}
                           disabled={confirmQuote.isPending}
                         >
@@ -763,7 +763,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
             Confirm only
           </Button>
           <Button
-            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 sm:w-auto"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
             disabled={confirmQuote.isPending}
             onClick={() => runConfirm(true)}
           >
