@@ -164,13 +164,13 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead>RFQ ID</TableHead>
+              <TableHead className="whitespace-nowrap">RFQ ID</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Mode</TableHead>
+              <TableHead className="whitespace-nowrap">Mode</TableHead>
               <TableHead>Lanes</TableHead>
               <TableHead>Bids</TableHead>
-              <TableHead>Auction Time</TableHead>
+              <TableHead className="whitespace-nowrap">Auction Time</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
@@ -198,13 +198,13 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                     style={{ animationDelay: `${index * 0.03}s` }}
                     onClick={() => onSelectRfq(rfq)}
                   >
-                    <TableCell className="font-medium text-foreground">
+                    <TableCell className="whitespace-nowrap font-medium text-foreground">
                       {rfq.rfq_number}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate">{rfq.title}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn(
-                        "font-normal capitalize",
+                        "whitespace-nowrap font-normal capitalize",
                         rfq.rfq_type === 'spot' && "border-warning text-warning",
                         rfq.rfq_type === 'contract' && "border-info text-info"
                       )}>
@@ -212,8 +212,8 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <ModeIcon className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2 whitespace-nowrap">
+                        <ModeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="text-sm">{modeLabels[rfq.mode] || rfq.mode}</span>
                       </div>
                     </TableCell>
