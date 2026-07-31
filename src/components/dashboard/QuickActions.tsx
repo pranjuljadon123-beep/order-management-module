@@ -43,7 +43,7 @@ export function QuickActions() {
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2 xl:justify-end">
       {actions.map((action, index) => (
         <Button
           key={action.label}
