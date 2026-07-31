@@ -384,7 +384,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
         <span>→ RFQ Details</span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 [&_label]:flex [&_label]:min-h-[1.5rem] [&_label]:items-end [&_label]:leading-tight">
         <FormField
           control={form.control}
           name="title"
@@ -631,7 +631,7 @@ export function CreateRfqDialog({ open, onOpenChange }: CreateRfqDialogProps) {
           </div>
 
           {auctionConfig.rankingLogic === 'weighted_score' && (
-            <div className="grid gap-4 sm:grid-cols-2 rounded-lg border border-border/50 p-4 bg-background/50">
+            <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 rounded-lg border border-border/50 p-4 bg-background/50 [&_label]:flex [&_label]:min-h-[1.5rem] [&_label]:items-end [&_label]:leading-tight">
               <div>
                 <Label className="text-sm">Price Weight (%)</Label>
                 <Input
