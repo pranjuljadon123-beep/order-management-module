@@ -61,6 +61,8 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
   const [detailQuote, setDetailQuote] = useState<Quote | null>(null);
   const [showCharges, setShowCharges] = useState(true);
+  // Price-ascending is the default ranking; buyers can re-rank without changing awards.
+  const [sortBy, setSortBy] = useState<'price' | 'transit' | 'reliability'>('price');
   const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number; intent?: 'confirm' | 'dispatch' } | null>(null);
   const [allocQty, setAllocQty] = useState('1');
 
@@ -134,9 +136,13 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   }
 
   // Sort by total cost
-  const sortedQuotes = [...allQuotes].sort((a, b) => 
-    (a.total_landed_cost || a.base_freight_rate) - (b.total_landed_cost || b.base_freight_rate)
-  );
+  const priceOf = (q: Quote) => q.total_landed_cost || q.base_freight_rate;
+  const sortedQuotes = [...allQuotes].sort((a, b) => {
+    if (sortBy === 'transit') return (a.transit_time_days ?? 999) - (b.transit_time_days ?? 999);
+    if (sortBy === 'reliability')
+      return getCarrierReliability(b.carrier_id) - getCarrierReliability(a.carrier_id);
+    return priceOf(a) - priceOf(b);
+  });
 
   const rateValues = sortedQuotes
     .filter((q) => q.status === 'accepted')
@@ -342,15 +348,19 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                 <span className="text-sm font-medium">Vendor</span>
               </div>
               <span className="text-sm text-muted-foreground mb-2">Price</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-fit"
-                onClick={() => toast.info('Vendor filter', { description: 'Filter by carrier, rating or rank — coming inline soon.' })}
-              >
-                <Filter className="h-3 w-3 mr-1 shrink-0" />
-                Filter
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-fit">
+                    <Filter className="h-3 w-3 mr-1 shrink-0" />
+                    {sortBy === 'price' ? 'Rank: Price' : sortBy === 'transit' ? 'Rank: Transit' : 'Rank: Reliability'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => setSortBy('price')}>Lowest price (default)</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('transit')}>Fastest transit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('reliability')}>Highest reliability</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
             {/* Row labels */}
