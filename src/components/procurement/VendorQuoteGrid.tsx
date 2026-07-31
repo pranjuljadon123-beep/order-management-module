@@ -1,9 +1,12 @@
-import { useQuotesByLane, useCreateAward, useUpdateRfqStatus } from '@/hooks/useProcurement';
+import { useQuotesByLane } from '@/hooks/useProcurement';
+import { useConfirmQuote, useSetRfqWorkflowStatus } from '@/hooks/useRfqLifecycle';
 import { useState, useMemo } from 'react';
 import { CreateDispatchDialog } from '@/components/dispatch/CreateDispatchDialog';
 import { useDispatches } from '@/hooks/useTeamsUsers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
@@ -11,7 +14,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  deriveRfqStatus,
+  computeAllocation,
+  validateAllocation,
+  isContainerMode,
+} from '@/lib/rfqWorkflow';
 import { 
   Star, 
   Loader2,
@@ -37,37 +46,63 @@ interface VendorQuoteGridProps {
   rfqStatus: string;
   isVendor?: boolean;
   bidDeadline?: string;
+  /** Full RFQ record — the single source of truth for status + allocation. */
+  rfq?: any;
 }
 
-export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidDeadline }: VendorQuoteGridProps) {
+export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidDeadline, rfq }: VendorQuoteGridProps) {
   const { data: quotes, isLoading } = useQuotesByLane(lane.id);
-  const createAward = useCreateAward();
-  const updateRfqStatus = useUpdateRfqStatus();
+  const confirmQuote = useConfirmQuote();
+  const setWorkflowStatus = useSetRfqWorkflowStatus();
   const { dispatches } = useDispatches();
   const [dispatchOpen, setDispatchOpen] = useState(false);
   const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
   const [detailQuote, setDetailQuote] = useState<Quote | null>(null);
   const [showCharges, setShowCharges] = useState(true);
+  const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number } | null>(null);
+  const [allocQty, setAllocQty] = useState('1');
 
-  const now = Date.now();
-  const deadlineMs = bidDeadline ? new Date(bidDeadline).getTime() : null;
-  const deadlinePassed = deadlineMs != null && deadlineMs <= now;
-  const bidsClosed = deadlinePassed || ['evaluation', 'awarded', 'expired'].includes(rfqStatus);
-  const bidsOpen = !bidsClosed && ['published', 'bidding'].includes(rfqStatus);
+  const rfqRecord = rfq ?? { status: rfqStatus, bid_deadline: bidDeadline };
+  const derived = deriveRfqStatus(rfqRecord);
+  const bidsOpen = derived.bidsOpen;
+  const bidsClosed = !bidsOpen;
+  const allocation = computeAllocation(
+    Number(rfqRecord.required_quantity) || Number(lane.quantity) || 0,
+    Number(rfqRecord.allocated_quantity) || 0
+  );
 
   const dispatchForQuote = (quoteId: string) =>
     dispatches.find((d) => d.quoteId === quoteId);
 
-  const openDispatch = (quote: Quote, carrier: Carrier) => {
+  const openDispatch = (quote: Quote, carrier: Carrier, allocatedQty?: number) => {
+    const qty = allocatedQty ?? Number(lane.quantity) ?? 1;
     setDispatchPrefill({
+      team: rfqRecord.team || 'Demo USD',
+      poNumber: rfqRecord.po_number || rfqRecord.rfq_number || '',
       vendor: carrier?.name || '',
       rfqId,
+      rfqNumber: rfqRecord.rfq_number,
       quoteId: quote.id,
       laneId: lane.id,
       originPort: lane.origin_port || `${lane.origin_city}${lane.origin_country ? ', ' + lane.origin_country : ''}`,
       destinationPort: lane.destination_port || `${lane.destination_city}${lane.destination_country ? ', ' + lane.destination_country : ''}`,
-      mode: 'FCL',
-      containers: lane.equipment_type ? [{ size: lane.equipment_type, qty: lane.quantity || 1 }] : undefined,
+      mode: isContainerMode(rfqRecord.mode) ? 'FCL' : 'LCL',
+      incoterm: rfqRecord.incoterms || undefined,
+      type: rfqRecord.type || 'Export',
+      pickDrop: rfqRecord.pick_drop || undefined,
+      containers: isContainerMode(rfqRecord.mode)
+        ? [{ size: lane.equipment_type || '40ft', qty }]
+        : undefined,
+      quotes: [
+        {
+          quoteId: quote.id,
+          vendor: carrier?.name || 'Vendor',
+          rate: quote.total_landed_cost || quote.base_freight_rate,
+          currency: quote.currency,
+          allocatedQuantity: qty,
+          transitDays: quote.transit_time_days,
+        },
+      ],
     });
     setDispatchOpen(true);
   };
