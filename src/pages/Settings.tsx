@@ -57,7 +57,7 @@ function UsersTab({ teamId }: { teamId?: string }) {
           <Button variant="outline" size="sm" onClick={() => toast.info('CSV export coming soon')}>Export</Button>
           <Dialog open={openAdd} onOpenChange={setOpenAdd}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-accent hover:bg-accent/90"><Plus className="h-4 w-4 mr-1" />Add User</Button>
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" />Add User</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Invite user</DialogTitle></DialogHeader>
@@ -162,7 +162,7 @@ function TeamsTab({ onSelect }: { onSelect: (t: Team) => void }) {
         </div>
         <Dialog open={openAdd} onOpenChange={setOpenAdd}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-accent hover:bg-accent/90"><Plus className="h-4 w-4 mr-1" />New Team</Button>
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" />New Team</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Create Team</DialogTitle></DialogHeader>
@@ -230,7 +230,7 @@ function MasterTable({
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder={`Search ${title.toLowerCase()}...`} className="pl-9" value={q} onChange={e => setQ(e.target.value)} />
         </div>
-        {onAdd && <Button size="sm" onClick={onAdd} className="bg-accent hover:bg-accent/90"><Plus className="h-4 w-4 mr-1" />Add {title}</Button>}
+        {onAdd && <Button size="sm" onClick={onAdd} className="bg-primary text-primary-foreground hover:bg-primary/90"><Plus className="h-4 w-4 mr-1" />Add {title}</Button>}
       </div>
       <div className="rounded-lg border bg-card">
         <Table>

@@ -182,7 +182,7 @@ const VendorRfqDetail = () => {
             </CardHeader>
             <CardContent className="flex justify-center">
               <Button 
-                className="bg-accent hover:bg-accent/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleAcceptInvitation}
                 disabled={acceptInvitation.isPending}
               >
@@ -370,7 +370,7 @@ const VendorRfqDetail = () => {
                   </Button>
                   <Button 
                     type="submit" 
-                    className="bg-accent hover:bg-accent/90"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                     disabled={submitQuote.isPending || !baseRate}
                   >
                     {submitQuote.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -488,7 +488,7 @@ const VendorRfqDetail = () => {
                           <Button
                             size="sm"
                             variant={existingQuote ? 'outline' : 'default'}
-                            className={!existingQuote ? 'bg-accent hover:bg-accent/90' : ''}
+                            className={!existingQuote ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}
                             onClick={() => {
                               setSelectedLane(lane);
                               setShowQuoteForm(true);

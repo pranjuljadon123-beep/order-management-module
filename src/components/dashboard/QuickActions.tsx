@@ -51,7 +51,7 @@ export function QuickActions() {
           size="sm"
           className={`gap-2 animate-fade-in ${
             action.variant === "default"
-              ? "bg-accent hover:bg-accent/90 text-accent-foreground"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : ""
           }`}
           style={{ animationDelay: `${index * 0.05}s` }}
