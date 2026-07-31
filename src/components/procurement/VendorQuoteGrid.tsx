@@ -541,18 +541,18 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <span className="truncate">Dispatch Created</span>
                       </Button>
                     ) : isConfirmed ? (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs min-w-0 px-2"
+                          className="w-full text-xs px-2"
                           onClick={() => toast.success(`Reconfirmation request sent to ${carrier?.name ?? 'vendor'}`)}
                         >
                           Reconfirm Quote
                         </Button>
                         <Button
                           size="sm"
-                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
+                          className="w-full text-xs px-2 bg-accent hover:bg-accent/90"
                           onClick={() => openDispatch(quote, carrier)}
                         >
                           <Truck className="h-3 w-3 mr-1 shrink-0" />
@@ -560,10 +560,10 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         </Button>
                       </div>
                     ) : canAward ? (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-2">
                         <Button 
                           size="sm" 
-                          className="text-xs min-w-0 px-2 bg-success hover:bg-success/90"
+                          className="w-full text-xs px-2 bg-success hover:bg-success/90"
                           onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1)}
                           disabled={confirmQuote.isPending}
                         >
@@ -578,7 +578,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         </Button>
                         <Button
                           size="sm"
-                          className="text-xs min-w-0 px-2 bg-accent hover:bg-accent/90"
+                          className="w-full text-xs px-2 bg-accent hover:bg-accent/90"
                           onClick={() => openConfirm(quote, sortedQuotes.indexOf(quote) + 1, 'dispatch')}
                           disabled={confirmQuote.isPending}
                         >
@@ -588,7 +588,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-xs min-w-0 px-2 col-span-2"
+                          className="w-full text-xs px-2"
                           onClick={() => toast.info('Negotiation thread opened', { description: `Sending counter-offer request to ${carrier?.name ?? 'vendor'}.` })}
                         >
                           Negotiate
