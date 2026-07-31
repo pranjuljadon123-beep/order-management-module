@@ -91,6 +91,10 @@ interface ExtendedLaneInput {
 interface ExtendedRfqInput extends Omit<CreateRfqInput, 'lanes'> {
   lanes: ExtendedLaneInput[];
   po_number?: string;
+  pick_drop?: string;
+  required_charges?: string[];
+  container_count?: number;
+  container_size?: string;
   so_number?: string;
   customer_id?: string;
   shipper_id?: string;
