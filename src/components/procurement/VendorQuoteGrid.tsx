@@ -353,7 +353,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
               <div 
                 key={quote.id} 
                 className={cn(
-                  "w-56 flex-shrink-0 border-r border-border",
+                  "w-64 flex-shrink-0 border-r border-border",
                   rank === 1 && "bg-success/5"
                 )}
               >
@@ -462,7 +462,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                       onClick={() => setDetailQuote(quote)}
                     >
                       <Eye className="h-3 w-3 mr-1 shrink-0" />
-                      View Complete Quote
+                      <span className="truncate">View Complete Quote</span>
                     </Button>
 
                     {existingDispatch ? (
@@ -472,7 +472,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         onClick={() => toast.success(`Dispatch ${existingDispatch.dispatchNumber} already created`, { description: 'Open the Shipments module to continue execution.' })}
                       >
                         <Truck className="h-3 w-3 mr-1 shrink-0" />
-                        Dispatch Created
+                        <span className="truncate">Dispatch Created</span>
                       </Button>
                     ) : isConfirmed ? (
                       <div className="grid grid-cols-2 gap-2">
@@ -506,7 +506,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                           ) : (
                             <>
                               <CheckCircle2 className="h-3 w-3 mr-1 shrink-0" />
-                              Confirm Quote
+                              <span className="truncate">Confirm</span>
                             </>
                           )}
                         </Button>
@@ -522,11 +522,11 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                     ) : bidsOpen ? (
                       <Button size="sm" variant="outline" className="w-full text-xs px-2" disabled>
                         <Lock className="h-3 w-3 mr-1 shrink-0" />
-                        Locked until bids close
+                        <span className="truncate">Locked until bids close</span>
                       </Button>
                     ) : (
                       <Button size="sm" variant="outline" className="w-full text-xs px-2" disabled>
-                        {lane.is_awarded ? 'Awarded to another vendor' : 'Not selected'}
+                        <span className="truncate">{lane.is_awarded ? 'Awarded to another vendor' : 'Not selected'}</span>
                       </Button>
                     )}
 
@@ -538,7 +538,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
                         onClick={() => toast.info(`Open conversation with ${carrier?.name ?? 'vendor'}`)}
                       >
                         <MessageSquare className="h-3 w-3 mr-1 shrink-0" />
-                        Messages
+                        <span className="truncate">Messages</span>
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
