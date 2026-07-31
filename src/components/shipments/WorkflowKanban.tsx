@@ -125,7 +125,7 @@ export function WorkflowKanban({ stageGroups, bottlenecks }: WorkflowKanbanProps
             </div>
 
             {/* Cards */}
-            <ScrollArea className="h-[min(calc(100vh-380px),560px)]">
+            <ScrollArea className="h-[min(calc(100vh-380px),560px)] w-full [&>[data-radix-scroll-area-viewport]>div]:!block">
               <div className="p-2 space-y-2">
                 {items.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-8">No shipments</p>
