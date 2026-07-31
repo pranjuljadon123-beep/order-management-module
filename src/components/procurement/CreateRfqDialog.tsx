@@ -35,8 +35,9 @@ import { Label } from '@/components/ui/label';
 import { 
   Plus, Trash2, Loader2, Ship, Plane, Truck, Train, 
   FileText, ScrollText, ChevronLeft, ChevronRight, 
-  Gavel, Settings2, MapPin
+  Gavel, Settings2, MapPin, CheckCircle2, AlertCircle, Circle
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { CreateRfqInput, TransportMode } from '@/types/procurement';
 import { ConsignmentDetailsSection } from './ConsignmentDetailsSection';
 import { LaneDimensionsSection } from './LaneDimensionsSection';
