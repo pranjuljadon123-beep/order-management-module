@@ -921,7 +921,7 @@ function LaneFormSection({ form, index, isSpot, fieldsLength, onRemove, shippers
       </div>
 
       {/* Lane-level Shipper/Consignee (optional override) */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end [&_label]:text-xs [&_label]:leading-tight [&_button]:h-9 [&_input]:h-9">
         <FormField
           control={form.control}
           name={`lanes.${index}.shipper_id`}
@@ -985,7 +985,7 @@ function LaneFormSection({ form, index, isSpot, fieldsLength, onRemove, shippers
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end [&_label]:gap-1 [&_label]:text-xs [&_label]:leading-tight [&_input]:h-9 [&_button]:h-9">
         <FormField
           control={form.control}
           name={`lanes.${index}.origin_city`}
