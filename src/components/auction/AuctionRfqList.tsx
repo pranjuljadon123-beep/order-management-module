@@ -244,7 +244,7 @@ export function AuctionRfqList({ onSelectRfq }: AuctionRfqListProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className={cn("status-badge capitalize", auctionStatus.variant)}>
+                      <span className={cn("status-badge whitespace-nowrap capitalize", auctionStatus.variant)}>
                         <StatusIcon className={cn("h-3 w-3", rfq.auction_status === 'live' && "animate-pulse")} />
                         {auctionStatus.label}
                       </span>
