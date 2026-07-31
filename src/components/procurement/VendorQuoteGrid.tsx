@@ -61,7 +61,7 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
   const [dispatchPrefill, setDispatchPrefill] = useState<any>(null);
   const [detailQuote, setDetailQuote] = useState<Quote | null>(null);
   const [showCharges, setShowCharges] = useState(true);
-  const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number } | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{ quote: Quote; rank: number; intent?: 'confirm' | 'dispatch' } | null>(null);
   const [allocQty, setAllocQty] = useState('1');
 
   const rfqRecord = rfq ?? { status: rfqStatus, bid_deadline: bidDeadline };
