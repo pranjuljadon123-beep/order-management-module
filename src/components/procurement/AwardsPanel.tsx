@@ -132,7 +132,9 @@ export function AwardsPanel({ rfqId }: AwardsPanelProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {format(new Date(award.awarded_at), 'MMM d, yyyy')}
+                  {award.awarded_at && !isNaN(new Date(award.awarded_at).getTime())
+                    ? format(new Date(award.awarded_at), 'MMM d, yyyy')
+                    : '—'}
                 </TableCell>
                 <TableCell>
                   {award.is_locked ? (
