@@ -699,37 +699,37 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
 
     {/* Confirm quote — allocation aware, never a silent one-click award */}
     <Dialog open={!!confirmTarget} onOpenChange={(o) => !o && setConfirmTarget(null)}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             Confirm L{confirmTarget?.rank} quote — {(confirmTarget?.quote.carrier as Carrier)?.name}
           </DialogTitle>
         </DialogHeader>
         {confirmTarget && (
-          <div className="space-y-4 text-sm">
-            <div className="grid grid-cols-2 gap-3 rounded-lg border p-3">
-              <div>
+          <div className="space-y-4 text-sm min-w-0">
+            <div className="grid grid-cols-2 gap-3 rounded-lg border p-3 min-w-0">
+              <div className="min-w-0">
                 <p className="text-muted-foreground">Rate</p>
-                <p className="font-semibold">
+                <p className="font-semibold truncate">
                   {formatCurrency(
                     confirmTarget.quote.total_landed_cost || confirmTarget.quote.base_freight_rate,
                     confirmTarget.quote.currency
                   )}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-muted-foreground">Transit</p>
-                <p className="font-semibold">{confirmTarget.quote.transit_time_days ?? '-'} days</p>
+                <p className="font-semibold truncate">{confirmTarget.quote.transit_time_days ?? '-'} days</p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-muted-foreground">Lane</p>
                 <p className="font-semibold truncate">
                   {lane.origin_city} → {lane.destination_city}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-muted-foreground">Remaining</p>
-                <p className="font-semibold">
+                <p className="font-semibold truncate">
                   {allocation.required > 0 ? `${allocation.remaining} of ${allocation.required}` : 'Not tracked'}
                 </p>
               </div>
@@ -750,19 +750,20 @@ export function VendorQuoteGrid({ lane, rfqId, rfqStatus, isVendor = false, bidD
             </div>
           </div>
         )}
-        <DialogFooter className="flex-col gap-2 sm:flex-row">
-          <Button variant="outline" onClick={() => setConfirmTarget(null)}>
+        <DialogFooter className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setConfirmTarget(null)}>
             Cancel
           </Button>
           <Button
             variant="outline"
+            className="w-full sm:w-auto"
             disabled={confirmQuote.isPending}
             onClick={() => runConfirm(false)}
           >
             Confirm only
           </Button>
           <Button
-            className="bg-accent hover:bg-accent/90"
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 sm:w-auto"
             disabled={confirmQuote.isPending}
             onClick={() => runConfirm(true)}
           >
