@@ -13,6 +13,7 @@ import {
 import { VendorQuoteGrid } from './VendorQuoteGrid';
 import { RfqEnquiryDetails } from './RfqEnquiryDetails';
 import { AwardsPanel } from './AwardsPanel';
+import { isFreightNotRequired } from '@/lib/rfqWorkflow';
 import type { Rfq, RfqLane } from '@/types/procurement';
 import { toast } from 'sonner';
 
@@ -23,6 +24,11 @@ interface RfqDetailTabsProps {
 }
 
 export function RfqDetailTabs({ rfq, lanes, isVendor = false }: RfqDetailTabsProps) {
+  const freightNotRequired = isFreightNotRequired(
+    (rfq as any).incoterms,
+    (rfq as any).pick_drop
+  );
+
   const handleDownloadAll = () => {
     const rows = [['Lane', 'Origin', 'Destination', 'Quotes']];
     lanes.forEach((l) => {
