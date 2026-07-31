@@ -331,7 +331,7 @@ export function InvoiceDetailView({ invoice, onBack, onApprove, onReject }: Invo
               Attachments
             </h3>
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="w-full flex-1 [&>[data-radix-scroll-area-viewport]>div]:!block">
             <div className="p-4">
               {invoice.hasAttachment ? (
                 <Card className="p-4 bg-muted/50 text-center">

@@ -63,7 +63,7 @@ export function InvoiceSidebar({ filter, setFilter, stats, onBulkUpload }: Invoi
       </div>
 
       {/* Filter Navigation */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="w-full flex-1 [&>[data-radix-scroll-area-viewport]>div]:!block">
         <nav className="px-2 pb-4 space-y-1">
           {filterItems.map((item) => {
             const Icon = item.icon;
