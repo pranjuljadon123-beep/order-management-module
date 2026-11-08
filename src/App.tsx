@@ -17,6 +17,11 @@ import VendorPortal from "./pages/VendorPortal";
 import VendorRfqDetail from "./pages/VendorRfqDetail";
 import Settings from "./pages/Settings";
 import DispatchDetail from "./pages/DispatchDetail";
+import LaneWatchTower from "./pages/LaneWatchTower";
+import LaneWatchOcean from "./pages/LaneWatchOcean";
+import LaneWatchAir from "./pages/LaneWatchAir";
+import LaneWatchEvent from "./pages/LaneWatchEvent";
+import LaneWatchImpact from "./pages/LaneWatchImpact";
 
 // Website Pages
 import WebsiteHome from "./pages/website/WebsiteHome";
@@ -69,7 +74,11 @@ const App = () => (
           <Route path="/tracking" element={<Tracking />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/invoices" element={<Invoices />} />
-          <Route path="/risk" element={<PlaceholderPage title="Risk Monitor" description="Real-time disruption monitoring, weather alerts, and predictive risk analysis coming soon." />} />
+          <Route path="/risk" element={<LaneWatchTower />} />
+          <Route path="/risk/ocean/:reference" element={<LaneWatchOcean />} />
+          <Route path="/risk/air/:reference" element={<LaneWatchAir />} />
+          <Route path="/risk/event/:code" element={<LaneWatchEvent />} />
+          <Route path="/risk/impact/:code" element={<LaneWatchImpact />} />
           <Route path="/messages" element={<PlaceholderPage title="Messages" description="In-platform collaboration and communication tools coming soon." />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />

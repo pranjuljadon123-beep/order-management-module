@@ -25,7 +25,7 @@ const navItems = [
   { icon: Package, label: "Tracking", path: "/tracking" },
   { icon: FileText, label: "Documents", path: "/documents" },
   { icon: DollarSign, label: "Invoices", path: "/invoices" },
-  { icon: Globe, label: "Risk Monitor", path: "/risk" },
+  { icon: Globe, label: "LaneWatch", path: "/risk" },
   { icon: MessageSquare, label: "Messages", path: "/messages" },
 ];
 

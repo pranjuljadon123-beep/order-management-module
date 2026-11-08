@@ -92,12 +92,14 @@ async function gatherContext(): Promise<Record<string, unknown>> {
   const tracking = (window as any).__daistrixCtx?.tracking ?? null;
   const workflow = (window as any).__daistrixCtx?.workflow ?? null;
   const invoices = (window as any).__daistrixCtx?.invoices ?? null;
+  const lanewatch = (window as any).__daistrixCtx?.lanewatch ?? null;
 
   return {
     generatedAt: new Date().toISOString(),
     tracking: tracking ? { shipments: cap(tracking.shipments, 30), incidents: cap(tracking.incidents, 10), stats: tracking.stats } : null,
     workflow: workflow ? { shipments: cap(workflow.shipments, 30), stats: workflow.stats, bottlenecks: workflow.bottlenecks } : null,
     invoices: invoices ? { items: cap(invoices, 40) } : null,
+    lanewatch: lanewatch ? { warnings: cap(lanewatch.warnings, 20), stats: lanewatch.stats, touchedShipments: cap(lanewatch.touchedShipments, 30) } : null,
     rfqs: cap(rfqsRes.data),
     quotes: cap(quotesRes.data, 30),
     orders: cap(ordersRes.data),
