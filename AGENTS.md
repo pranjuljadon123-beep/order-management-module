@@ -1,0 +1,1 @@
+Feature modules with multiple routes should share a module shell that composes AppLayout, keeping route pages free of duplicate application chrome; domain safeguards belong in standalone logic modules so tests can enforce them independently.
