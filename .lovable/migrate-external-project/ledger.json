@@ -2,11 +2,11 @@
   "source": "code-archive",
   "artifact": "lanewatch-module.tar.gz",
   "capabilities": [
-    { "capability": "application code", "source": "React/TypeScript module source and implementation prompts", "outcome": "migrate", "status": "pending", "next_action": "Integrate the LaneWatch screens and logic into the existing app." },
+    { "capability": "application code", "source": "React/TypeScript module source and implementation prompts", "outcome": "migrate", "status": "verified", "next_action": "None; five LaneWatch screens are integrated and browser-checked." },
     { "capability": "schema", "source": "No database schema included", "outcome": "absent", "status": "not_applicable", "next_action": "None." },
     { "capability": "application records", "source": "Fictional records bundled in a TypeScript demo seed; no production export", "outcome": "demo_only", "status": "not_applicable", "next_action": "Keep demo data explicitly labeled; request real records only if the user wants them imported." },
     { "capability": "auth identities", "source": "Static fictional demo users only", "outcome": "not_present", "status": "not_applicable", "next_action": "No user identities to migrate." },
-    { "capability": "authorization", "source": "Tenant-scoping and role guards in module source", "outcome": "migrate", "status": "pending", "next_action": "Preserve and verify tenant scoping and human review guards." },
+    { "capability": "authorization", "source": "Tenant-scoping and role guards in module source", "outcome": "migrate", "status": "verified_demo", "next_action": "Live user/tenant identity wiring is not provided by the archive; the screens currently use fictional demo identities." },
     { "capability": "uploaded file bytes", "source": "No uploaded application files referenced", "outcome": "absent", "status": "not_applicable", "next_action": "None." },
     { "capability": "external providers", "source": "No provider integrations or credentials; source explicitly describes unimplemented feed integrations", "outcome": "demo_only", "status": "not_applicable", "next_action": "Keep all external feed, carrier, AWB and flight sources clearly labeled as unavailable concept integrations." },
     { "capability": "public endpoints and callbacks", "source": "None detected", "outcome": "absent", "status": "not_applicable", "next_action": "None." },
@@ -14,6 +14,6 @@
     { "capability": "schedules", "source": "None detected", "outcome": "absent", "status": "not_applicable", "next_action": "None." },
     { "capability": "secrets", "source": "No environment variables or secrets detected", "outcome": "absent", "status": "not_applicable", "next_action": "None." },
     { "capability": "cutover", "source": "No production system or external callers identified", "outcome": "not_applicable", "status": "not_applicable", "next_action": "None." },
-    { "capability": "verification", "source": "Module includes 30 leakage and business-rule tests", "outcome": "run", "status": "pending", "next_action": "Run the supplied rule tests and verify module routes in the preview." }
+    { "capability": "verification", "source": "Module includes 30 leakage and business-rule tests; one additional display-math test was added", "outcome": "run", "status": "verified", "next_action": "31 tests pass; typecheck and preview route checks pass." }
   ]
 }

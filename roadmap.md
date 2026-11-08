@@ -1,3 +1,3 @@
-- [ ] Integrate the uploaded LaneWatch domain types, validation, exposure, guards, seed data, and read hook.
-- [ ] Add the shared LaneWatch shell and five linked risk-monitoring screens, then wire routes and navigation.
-- [ ] Run the supplied safety/business-rule tests and verify the live preview routes and key demo cases.
+- [x] Integrate the LaneWatch domain types, validation, exposure, guards, demo seed data, and shared read hook.
+- [x] Add the shared LaneWatch shell and five linked risk-monitoring screens, then wire routes, navigation, and assistant context.
+- [x] Pass all 31 safety/business-rule tests, typecheck, and verify all routes and key demo cases in preview.

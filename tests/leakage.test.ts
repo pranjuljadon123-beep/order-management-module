@@ -50,6 +50,7 @@ test('L2 volume is not weight: a hundred social posts stay a watch', () => {
   assert.equal(v.corroborated, false);
   assert.equal(v.dispatchable, false);
   assert.match(v.blockers[0], /Social only/);
+  assert.ok(v.watchPolicy.some((line) => line.includes('never pushed as an action')));
 });
 
 test('L2 syndication is not corroboration: two stories, one outlet', () => {
@@ -241,6 +242,11 @@ test('L4 the cyclone exposure reproduces the mockup counts', () => {
   const byNumber = Object.fromEntries(exp.poExposures.map((p) => [p.poNumber, p.status]));
   assert.equal(byNumber['PO-4471'], 'TIGHT');
   assert.equal(byNumber['PO-4480'], 'OK');
+});
+
+test('L4 connection display segments are derived from demo connection minutes', async () => {
+  const { connectionSegmentPercentages } = await import('../src/lib/lanewatch/exposure.ts');
+  assert.deepEqual(connectionSegmentPercentages([75, 140, 25]), [31.25, 58.333333333333336, 10.416666666666668]);
 });
 
 test('L4 every verdict carries its own explanation', () => {

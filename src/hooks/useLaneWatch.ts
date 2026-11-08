@@ -3,7 +3,7 @@ import type {
   DecisionRecord, DisruptionEvent, EventVerdict, LaneWatchShipment, LaneWatchUser,
 } from '@/types/lanewatch';
 import { deriveStatus, applyHumanReview, compareForWarningList, assertAdvisable } from '@/lib/lanewatch/validation';
-import { buildExposure, delayDays } from '@/lib/lanewatch/exposure';
+import { buildExposure, connectionSegmentPercentages, delayDays } from '@/lib/lanewatch/exposure';
 import { scope, scopedFind, scopedFindByRef } from '@/lib/lanewatch/guards';
 import {
   DEMO_USERS, decisionOptions, events as seedEvents, purchaseOrders,
@@ -86,6 +86,16 @@ export function useLaneWatch(user: LaneWatchUser = DEMO_USERS.controller) {
     };
   }, [warnings, touchedShipments, myShipments, mySignals]);
 
+  const connectionSegments = useMemo(() => {
+    const segments = new Map<string, number[]>();
+    for (const shipment of myShipments) {
+      if (!shipment.connection) continue;
+      const { bufferMinutes, slowdownMinutes, overrunMinutes } = shipment.connection;
+      segments.set(shipment.id, connectionSegmentPercentages([bufferMinutes, slowdownMinutes, overrunMinutes]));
+    }
+    return segments;
+  }, [myShipments]);
+
   const getEvent = useCallback((id: string) => scopedFind(eventState, user, id), [eventState, user]);
 
   const getShipment = useCallback(
@@ -161,6 +171,7 @@ export function useLaneWatch(user: LaneWatchUser = DEMO_USERS.controller) {
     exposures,
     touchedShipments,
     stats,
+    connectionSegments,
     decisions,
     getEvent,
     getShipment,

@@ -12,7 +12,7 @@ export function Panel({ title, caption, children, className = '' }: { title: str
 }
 
 export function StatusPill({ status, compact = false }: { status: EventStatus; compact?: boolean }) {
-  return <Badge variant="outline" className={status === 'ACT_NOW' ? 'border-destructive/40 bg-destructive/10 text-destructive' : 'border-warning/40 bg-warning/10 text-warning-foreground'}>{status === 'ACT_NOW' ? 'ACT NOW' : compact ? 'WATCH' : 'WATCH – UNCONFIRMED'}</Badge>;
+  return <Badge variant="outline" className={status === 'ACT_NOW' ? 'border-destructive/40 bg-destructive/10 text-destructive' : 'border-warning/40 bg-warning/10 text-warning'}>{status === 'ACT_NOW' ? 'ACT NOW' : compact ? 'WATCH' : 'WATCH – UNCONFIRMED'}</Badge>;
 }
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {

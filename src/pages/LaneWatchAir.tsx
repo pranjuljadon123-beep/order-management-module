@@ -14,7 +14,7 @@ export default function LaneWatchAir() {
   const poRows = exposure?.poExposures.filter((po) => shipment.linkedPoIds.includes(po.poId)) ?? [];
   const connection = shipment.connection;
   const signal = warning?.event && data.getSignalsFor(warning.event.id).find((row) => row.id === connection?.validationSignalId);
-  const share = connection ? connectionSegmentPercentages([connection.bufferMinutes, connection.slowdownMinutes, connection.overrunMinutes]) : [];
+  const share = data.connectionSegments.get(shipment.id) ?? [];
 
   return <LaneWatchShell title={`Air visibility · ${shipment.reference}`} section="Air" context={`AWB ${shipment.transportDoc}`}>
     <section className="border border-border bg-card p-4"><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"><Field label="AWB">{shipment.transportDoc}</Field><Field label="Routing">{shipment.lane}</Field><Field label="Flights">{shipment.vesselOrFlight}</Field><Field label="Cargo">{shipment.cargo}</Field><Field label="Pieces / weight">{shipment.equipment ?? 'Not recorded'}</Field></div><div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">{warning ? <StatusPill status={warning.verdict.status} /> : <span className="text-sm text-muted-foreground">No linked warning</span>}{warning && <span className="text-sm">· {warning.event.title}</span>}<span className="ml-auto text-xs text-muted-foreground">Milestones: airline/forwarder status (concept)</span></div></section>

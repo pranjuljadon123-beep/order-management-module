@@ -65,7 +65,7 @@ export function LaneWatchShell({ title, section, context, children }: LaneWatchS
                   <p className="mb-1 text-xs text-muted-foreground">LaneWatch <span className="px-1">/</span> {section} <span className="px-1">·</span> {context}</p>
                   <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">{title}</h1>
                 </div>
-                <Badge variant="outline" className="border-warning/40 bg-warning/10 text-warning-foreground">Illustrative demo data · Concept design</Badge>
+                <Badge variant="outline" className="border-warning/40 bg-warning/10 text-warning">Illustrative demo data · Concept design</Badge>
               </div>
               <div className="space-y-5">{children}</div>
               <footer className="mt-8 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">{DEMO_NOTICE}</footer>
